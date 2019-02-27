@@ -37,8 +37,8 @@ const (
 	HeketiStorageSecretName   = "heketi-storage-secret"
 	HeketiStorageVolTagName   = "heketi-storage"
 
-	HeketiStorageVolumeSize    = 2
-	HeketiStorageVolumeSizeStr = "2Gi"
+	HeketiStorageVolumeSize    = 4
+	HeketiStorageVolumeSizeStr = "4Gi"
 )
 
 var (
@@ -67,9 +67,9 @@ func init() {
 			"\n\t\treplicate: (Default) Replica volume.")
 	setupHeketiStorageCommand.Flags().IntVar(&heketiStorageReplicaCount,
 		"replica",
-		3,
+		2,
 		"\n\tOptional: Replica value for durability type 'replicate'."+
-			"\n\tDefault is 3")
+			"\n\tDefault is 2")
 	setupHeketiStorageCommand.Flags().StringVar(&heketiStorageOptions,
 		"gluster-volume-options",
 		"",
