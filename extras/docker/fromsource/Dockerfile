@@ -23,6 +23,12 @@ RUN mkdir $BUILD_HOME $GOPATH && \
     cd $GOPATH/src/github.com/heketi && \
     git clone -b $HEKETI_BRANCH $HEKETI_REPO && \
     cd $GOPATH/src/github.com/heketi/heketi && \
+    mkdir -p /root/.glide && \
+    touch /root/.glide/mirrors.yaml && \
+    glide mirror set https://golang.org/x/net https://github.com/golang/net && \
+    glide mirror set https://golang.org/x/sys https://github.com/golang/sys && \
+    glide mirror set https://golang.org/x/text https://github.com/golang/text && \
+    glide mirror set https://golang.org/x/crypto https://github.com/golang/crypto && \
     glide install -v && \
     make && \
     mkdir -p /etc/heketi /var/lib/heketi && \
