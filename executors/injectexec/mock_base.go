@@ -104,5 +104,17 @@ func newMockBase() *mockexec.MockExecutor {
 	m.MockListBlockVolumes = func(host string, blockhostingvolume string) ([]string, error) {
 		return nil, NotSupportedError
 	}
+	m.MockSubvolumeCreate = func(host string, volume string, subvolume *executors.SubvolumeRequest) (*executors.Subvolume, error) {
+		return nil, NotSupportedError
+	}
+	m.MockSubvolumeDestroy = func(host string, volume string, subvolume string) error {
+		return NotSupportedError
+	}
+	m.MockSubvolumeInfo = func(host string, volume string, subvolume string) (*executors.Subvolume, error) {
+		return nil, NotSupportedError
+	}
+	m.MockSubvolumesInfo = func(host string, volume string) (*executors.SubvolInfo, error) {
+		return nil, NotSupportedError
+	}
 	return m
 }

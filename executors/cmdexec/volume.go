@@ -71,6 +71,10 @@ func (s *CmdExecutor) VolumeCreate(host string,
 
 	commands = append(commands, s.createVolumeOptionsCommand(volume)...)
 
+	if volume.Subvolume {
+		commands = append(commands, fmt.Sprintf("%v volume quota %v enable", s.glusterCommand(), volume.Name))
+	}
+
 	commands = append(commands, fmt.Sprintf("%v volume start %v", s.glusterCommand(), volume.Name))
 
 	err := rex.AnyError(s.RemoteExecutor.ExecCommands(host, commands,
