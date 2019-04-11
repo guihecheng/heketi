@@ -341,3 +341,46 @@ func (es *ExecutorStack) ListBlockVolumes(host string, blockhostingvolume string
 	}
 	return nil, NotSupportedError
 }
+
+func (es *ExecutorStack) SubvolumeCreate(host string, volume string,
+	subvolume *executors.SubvolumeRequest) (*executors.Subvolume, error) {
+	for _, e := range es.executors {
+		v, err := e.SubvolumeCreate(host, volume, subvolume)
+		if err != NotSupportedError {
+			return v, err
+		}
+	}
+	return nil, NotSupportedError
+}
+
+func (es *ExecutorStack) SubvolumeDestroy(host string, volume string,
+	subvolume string) error {
+	for _, e := range es.executors {
+		err := e.SubvolumeDestroy(host, volume, subvolume)
+		if err != NotSupportedError {
+			return err
+		}
+	}
+	return NotSupportedError
+}
+
+func (es *ExecutorStack) SubvolumeInfo(host string, volume string,
+	subvolume string) (*executors.Subvolume, error) {
+	for _, e := range es.executors {
+		v, err := e.SubvolumeInfo(host, volume, subvolume)
+		if err != NotSupportedError {
+			return v, err
+		}
+	}
+	return nil, NotSupportedError
+}
+
+func (es *ExecutorStack) SubvolumesInfo(host string, volume string) (*executors.SubvolInfo, error) {
+	for _, e := range es.executors {
+		v, err := e.SubvolumesInfo(host, volume)
+		if err != NotSupportedError {
+			return v, err
+		}
+	}
+	return nil, NotSupportedError
+}
