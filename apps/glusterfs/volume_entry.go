@@ -46,6 +46,7 @@ const (
 	HEKETI_ARBITER_KEY           = "user.heketi.arbiter"
 	HEKETI_AVERAGE_FILE_SIZE_KEY = "user.heketi.average-file-size"
 	HEKETI_ZONE_CHECKING_KEY     = "user.heketi.zone-checking"
+	HEKETI_SUBVOLUME_KEY         = "user.heketi.subvolume"
 )
 
 var (
@@ -308,6 +309,16 @@ func (v *VolumeEntry) volOptsMap() map[string]string {
 // arbiter support.
 func (v *VolumeEntry) HasArbiterOption() bool {
 	value := v.volOptsMap()[HEKETI_ARBITER_KEY]
+	if b, e := strconv.ParseBool(value); e == nil {
+		return b
+	}
+	return false
+}
+
+// HasSubvolumeOption returns true if this volume is flagged for
+// subvolume support.
+func (v *VolumeEntry) HasSubvolumeOption() bool {
+	value := v.volOptsMap()[HEKETI_SUBVOLUME_KEY]
 	if b, e := strconv.ParseBool(value); e == nil {
 		return b
 	}
