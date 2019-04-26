@@ -51,6 +51,11 @@ func LoadOperation(
 		op, err = loadBlockVolumeCreateOperation(db, p)
 	case OperationDeleteBlockVolume:
 		op, err = loadBlockVolumeDeleteOperation(db, p)
+	// subvolume operations
+	case OperationCreateSubvolume:
+		op, err = loadSubvolumeCreateOperation(db, p)
+	case OperationDeleteSubvolume:
+		op, err = loadSubvolumeDeleteOperation(db, p)
 	default:
 		err = NewErrNotLoadable(p.Id, p.Type)
 	}

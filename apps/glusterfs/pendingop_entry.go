@@ -291,6 +291,25 @@ func (p *PendingOperationEntry) RecordRemoveDevice(d *DeviceEntry) {
 	p.Type = OperationRemoveDevice
 }
 
+func (p *PendingOperationEntry) RecordAddSubvolume(sv *SubvolumeEntry) {
+	// track which subvolume this op is created
+	p.recordChange(OpAddSubvolume, sv.Info.Id)
+	p.Type = OperationCreateSubvolume
+	// link back from "temporary" object to op
+	sv.Pending.Id = p.Id
+}
+
+func (p *PendingOperationEntry) RecordDeleteSubvolume(sv *SubvolumeEntry) {
+	p.recordChange(OpDeleteSubvolume, sv.Info.Id)
+	p.Type = OperationDeleteSubvolume
+	sv.Pending.Id = p.Id
+}
+
+func (p *PendingOperationEntry) FinalizeSubvolume(sv *SubvolumeEntry) {
+	sv.Pending.Id = ""
+	return
+}
+
 func (p *PendingOperationEntry) ToInfo() api.PendingOperationInfo {
 	return api.PendingOperationInfo{
 		Id:       p.Id,
