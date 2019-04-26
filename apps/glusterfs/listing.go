@@ -51,6 +51,24 @@ func ListCompleteBlockVolumes(tx *bolt.Tx) ([]string, error) {
 	return removeKeysFromList(v, p), nil
 }
 
+// ListCompleteSubvolumes returns a list of subvolume ID strings for subvolumes
+// that are not pending.
+func ListCompleteSubvolumes(tx *bolt.Tx) ([]string, error) {
+	p, err := MapPendingSubvolumes(tx)
+	if err != nil {
+		return []string{}, err
+	}
+	v, err := SubvolumeList(tx)
+	if err != nil {
+		return []string{}, err
+	}
+	if len(p) == 0 {
+		// avoid extra copy loop
+		return v, nil
+	}
+	return removeKeysFromList(v, p), nil
+}
+
 // UpdateVolumeInfoComplete updates the given VolumeInfoResponse object so
 // that it only contains references to complete block volumes.
 func UpdateVolumeInfoComplete(tx *bolt.Tx, vi *api.VolumeInfoResponse) error {
@@ -121,6 +139,17 @@ func MapPendingBricks(tx *bolt.Tx) (map[string]string, error) {
 func MapPendingDeviceRemoves(tx *bolt.Tx) (map[string]string, error) {
 	return mapPendingItems(tx, func(op *PendingOperationEntry, a PendingOperationAction) bool {
 		return (a.Change == OpRemoveDevice)
+	})
+}
+
+// MapPendingSubvolumes returns a map of subvolume-id to pending-op-id or
+// an error if the db cannot be read.
+func MapPendingSubvolumes(tx *bolt.Tx) (map[string]string, error) {
+	return mapPendingItems(tx, func(op *PendingOperationEntry, a PendingOperationAction) bool {
+		t := op.Type
+		c := a.Change
+		return ((t == OperationCreateSubvolume && c == OpAddSubvolume) ||
+			(t == OperationDeleteSubvolume && c == OpDeleteSubvolume))
 	})
 }
 

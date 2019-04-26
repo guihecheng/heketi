@@ -615,6 +615,28 @@ func (a *App) SetRoutes(router *mux.Router) error {
 			Pattern:     "/blockvolumes",
 			HandlerFunc: a.BlockVolumeList},
 
+		// Subolumes
+		rest.Route{
+			Name:        "SubvolumeCreate",
+			Method:      "POST",
+			Pattern:     "/subvolumes",
+			HandlerFunc: a.SubvolumeCreate},
+		rest.Route{
+			Name:        "SubvolumeDelete",
+			Method:      "DELETE",
+			Pattern:     "/subvolumes/{id:[A-Fa-f0-9]+}",
+			HandlerFunc: a.SubvolumeDelete},
+		rest.Route{
+			Name:        "SubvolumeInfo",
+			Method:      "GET",
+			Pattern:     "/subvolumes/{id:[A-Fa-f0-9]+}",
+			HandlerFunc: a.SubvolumeInfo},
+		rest.Route{
+			Name:        "SubvolumeList",
+			Method:      "GET",
+			Pattern:     "/subvolumes",
+			HandlerFunc: a.SubvolumeList},
+
 		// Backup
 		rest.Route{
 			Name:        "Backup",
