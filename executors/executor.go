@@ -326,9 +326,8 @@ type VolumeDoesNotExistErr struct {
 }
 
 type SubvolumeRequest struct {
-	Name   string
-	Volume string
-	Size   int
+	Name string
+	Size int
 }
 
 type Subvolume struct {

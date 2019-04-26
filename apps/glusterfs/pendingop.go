@@ -36,6 +36,8 @@ const (
 	OperationDeleteBlockVolume
 	OperationRemoveDevice
 	OperationCloneVolume
+	OperationCreateSubvolume
+	OperationDeleteSubvolume
 )
 
 // PendingChangeType identifies what kind of lower-level new item or change
@@ -55,6 +57,8 @@ const (
 	OpCloneVolume
 	OpSnapshotVolume
 	OpAddVolumeClone
+	OpAddSubvolume
+	OpDeleteSubvolume
 )
 
 // PendingOperationAction tracks individual changes to entries within the
@@ -113,6 +117,10 @@ func (v PendingOperationType) Name() string {
 		return "remove-device"
 	case OperationCloneVolume:
 		return "clone-volume"
+	case OperationCreateSubvolume:
+		return "create-subvolume"
+	case OperationDeleteSubvolume:
+		return "delete-subvolume"
 	}
 	return "unknown"
 }
@@ -142,6 +150,10 @@ func (c PendingChangeType) Name() string {
 		return "Snapshot volume"
 	case OpAddVolumeClone:
 		return "Expand volume to"
+	case OpAddSubvolume:
+		return "Add subvolume"
+	case OpDeleteSubvolume:
+		return "Delete subvolume"
 	}
 	return "Unknown"
 }

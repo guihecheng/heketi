@@ -540,6 +540,18 @@ func (v *VolumeInfoResponse) String() string {
 	return s
 }
 
+type SubvolumeCreateRequest struct {
+	// Size in GiB
+	Size     int    `json:"size"`
+	Name     string `json:"name"`
+	VolumeId string `json:"volume"`
+}
+
+type SubvolumeInfo struct {
+	SubvolumeCreateRequest
+	Id string `json:"id"`
+}
+
 func NewBlockVolumeInfoResponse() *BlockVolumeInfoResponse {
 
 	info := &BlockVolumeInfoResponse{}
