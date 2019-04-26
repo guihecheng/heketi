@@ -552,6 +552,21 @@ type SubvolumeInfo struct {
 	Id string `json:"id"`
 }
 
+type SubvolumeInfoResponse struct {
+	SubvolumeInfo
+}
+
+type SubvolumeListResponse struct {
+	Subvolumes []string `json:"subvolumes"`
+}
+
+func NewSubvolumeInfoResponse() *SubvolumeInfoResponse {
+
+	info := &SubvolumeInfoResponse{}
+
+	return info
+}
+
 func NewBlockVolumeInfoResponse() *BlockVolumeInfoResponse {
 
 	info := &BlockVolumeInfoResponse{}

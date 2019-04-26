@@ -9,12 +9,22 @@ import (
 	"github.com/heketi/heketi/executors"
 	wdb "github.com/heketi/heketi/pkg/db"
 	"github.com/heketi/heketi/pkg/glusterfs/api"
+	"github.com/heketi/heketi/pkg/idgen"
 	"github.com/lpabon/godbc"
 )
 
 type SubvolumeEntry struct {
 	Info    api.SubvolumeInfo
 	Pending PendingItem
+}
+
+func SubvolumeList(tx *bolt.Tx) ([]string, error) {
+
+	list := EntryKeys(tx, BOLTDB_BUCKET_SUBVOLUME)
+	if list == nil {
+		return nil, ErrAccessList
+	}
+	return list, nil
 }
 
 func NewSubvolumeEntry() *SubvolumeEntry {
@@ -32,6 +42,24 @@ func NewSubvolumeEntryFromId(tx *bolt.Tx, id string) (*SubvolumeEntry, error) {
 	}
 
 	return entry, nil
+}
+
+func NewSubvolumeEntryFromRequest(req *api.SubvolumeCreateRequest) *SubvolumeEntry {
+	godbc.Require(req != nil)
+
+	svol := NewSubvolumeEntry()
+	svol.Info.Size = req.Size
+	svol.Info.VolumeId = req.VolumeId
+	svol.Info.Id = idgen.GenUUID()
+
+	// Set default name
+	if req.Name == "" {
+		svol.Info.Name = "svol_" + svol.Info.Id
+	} else {
+		svol.Info.Name = req.Name
+	}
+
+	return svol
 }
 
 func (sv *SubvolumeEntry) BucketName() string {
@@ -175,4 +203,15 @@ func (sv *SubvolumeEntry) teardown(db wdb.DB) error {
 	return db.Update(func(tx *bolt.Tx) error {
 		return sv.Delete(tx)
 	})
+}
+
+func (sv *SubvolumeEntry) NewInfoResponse(tx *bolt.Tx) (*api.SubvolumeInfoResponse, error) {
+	godbc.Require(tx != nil)
+
+	info := api.NewSubvolumeInfoResponse()
+	info.Size = sv.Info.Size
+	info.Name = sv.Info.Name
+	info.Id = sv.Info.Id
+
+	return info, nil
 }
