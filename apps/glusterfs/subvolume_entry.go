@@ -216,6 +216,7 @@ func (sv *SubvolumeEntry) NewInfoResponse(tx *bolt.Tx) (*api.SubvolumeInfoRespon
 	info.Size = sv.Info.Size
 	info.Name = sv.Info.Name
 	info.Id = sv.Info.Id
+	info.VolumeId = sv.Info.VolumeId
 
 	return info, nil
 }
