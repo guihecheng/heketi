@@ -77,6 +77,10 @@ func (sv *SubvolumeEntry) Delete(tx *bolt.Tx) error {
 	return EntryDelete(tx, sv, sv.Info.Id)
 }
 
+func SubvolumeEntryUpgrade(tx *bolt.Tx) error {
+	return nil
+}
+
 func (sv *SubvolumeEntry) Marshal() ([]byte, error) {
 	var buffer bytes.Buffer
 	enc := gob.NewEncoder(&buffer)
