@@ -11,9 +11,6 @@ import (
 )
 
 func (a *App) SubvolumeCreate(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	vol_id := vars["id"]
-
 	var msg api.SubvolumeCreateRequest
 	err := utils.GetJsonFromRequest(r, &msg)
 	if err != nil {
@@ -39,7 +36,7 @@ func (a *App) SubvolumeCreate(w http.ResponseWriter, r *http.Request) {
 	var volume *VolumeEntry
 	err = a.db.View(func(tx *bolt.Tx) error {
 		var err error // needed otherwise 'volume' will be nil after View()
-		volume, err = NewVolumeEntryFromId(tx, vol_id)
+		volume, err = NewVolumeEntryFromId(tx, msg.VolumeId)
 		if err == ErrNotFound || !volume.Visible() {
 			// treat an invisible volume like it doesn't exist
 			http.Error(w, err.Error(), http.StatusNotFound)
