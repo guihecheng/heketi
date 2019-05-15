@@ -193,7 +193,7 @@ var subvolumeListCommand = &cobra.Command{
 					return err
 				}
 
-				fmt.Fprintf(stdout, "Id:%-35v Volume:%-35v Name:%v%v\n",
+				fmt.Fprintf(stdout, "Id:%-35v Volume:%-35v Name:%v\n",
 					id,
 					subvolume.VolumeId,
 					subvolume.Name)
@@ -210,7 +210,6 @@ Name: {{.Name}}
 Size: {{.Size}}
 Subvolume Id: {{.Id}}
 Volume Id: {{.VolumeId}}
-{{end}}
 `
 
 func printSubvolumeInfo(subvolume *api.SubvolumeInfoResponse) {
