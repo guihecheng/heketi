@@ -32,13 +32,12 @@ func (a *App) SubvolumeCreate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Check that the volume requested is available
-	var volume *VolumeEntry
+	// Check that the cluster requested is available
+	var cluster *ClusterEntry
 	err = a.db.View(func(tx *bolt.Tx) error {
-		var err error // needed otherwise 'volume' will be nil after View()
-		volume, err = NewVolumeEntryFromId(tx, msg.VolumeId)
-		if err == ErrNotFound || !volume.Visible() {
-			// treat an invisible volume like it doesn't exist
+		var err error // needed otherwise 'cluster' will be nil after View()
+		cluster, err = NewClusterEntryFromId(tx, msg.ClusterId)
+		if err == ErrNotFound {
 			http.Error(w, err.Error(), http.StatusNotFound)
 			return err
 		} else if err != nil {

@@ -12,9 +12,9 @@ import (
 )
 
 var (
-	sv_size int
-	sv_name string
-	vol_id  string
+	sv_size    int
+	sv_name    string
+	cluster_id string
 )
 
 func init() {
@@ -26,8 +26,8 @@ func init() {
 
 	subvolumeCreateCommand.Flags().IntVar(&sv_size, "size", 0,
 		"\n\tSize of subvolume in GiB")
-	subvolumeCreateCommand.Flags().StringVar(&vol_id, "volume", "",
-		"\n\tId of volume where subvolumes resides.")
+	subvolumeCreateCommand.Flags().StringVar(&cluster_id, "cluster", "",
+		"\n\tId of cluster where subvolumes resides.")
 	subvolumeCreateCommand.Flags().StringVar(&sv_name, "name", "",
 		"\n\tOptional: Name of subvolume. Only set if really necessary")
 
@@ -48,7 +48,7 @@ var subvolumeCreateCommand = &cobra.Command{
 	Short: "Create a subvolume under a GlusterFS volume",
 	Long:  "Create a subvolume under a GlusterFS volume",
 	Example: `  * Create a 100GiB subvolume under a volume:
-      $ heketi-cli subvolume create --size=100 --volume=subvolume-backend-id`,
+      $ heketi-cli subvolume create --size=100 --cluster=subvolume-backend-cluster-id`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		// Check subvolume size
 		if sv_size == 0 {
@@ -58,7 +58,7 @@ var subvolumeCreateCommand = &cobra.Command{
 		// Create request blob
 		req := &api.SubvolumeCreateRequest{}
 		req.Size = sv_size
-		req.VolumeId = vol_id
+		req.ClusterId = cluster_id
 
 		if sv_name != "" {
 			req.Name = sv_name
@@ -193,9 +193,9 @@ var subvolumeListCommand = &cobra.Command{
 					return err
 				}
 
-				fmt.Fprintf(stdout, "Id:%-35v Volume:%-35v Name:%v\n",
+				fmt.Fprintf(stdout, "Id:%-35v Cluster:%-35v Name:%v\n",
 					id,
-					subvolume.VolumeId,
+					subvolume.ClusterId,
 					subvolume.Name)
 			}
 		}
@@ -209,7 +209,7 @@ var subvolumeTemplate = `
 Name: {{.Name}}
 Size: {{.Size}}
 Subvolume Id: {{.Id}}
-Volume Id: {{.VolumeId}}
+Cluster Id: {{.ClusterId}}
 `
 
 func printSubvolumeInfo(subvolume *api.SubvolumeInfoResponse) {
