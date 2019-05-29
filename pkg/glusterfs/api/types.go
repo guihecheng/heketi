@@ -542,9 +542,9 @@ func (v *VolumeInfoResponse) String() string {
 
 type SubvolumeCreateRequest struct {
 	// Size in GiB
-	Size     int    `json:"size"`
-	Name     string `json:"name"`
-	VolumeId string `json:"volume"`
+	Size      int    `json:"size"`
+	Name      string `json:"name"`
+	ClusterId string `json:"cluster"`
 }
 
 type SubvolumeInfo struct {

@@ -49,7 +49,7 @@ func NewSubvolumeEntryFromRequest(req *api.SubvolumeCreateRequest) *SubvolumeEnt
 
 	svol := NewSubvolumeEntry()
 	svol.Info.Size = req.Size
-	svol.Info.VolumeId = req.VolumeId
+	svol.Info.ClusterId = req.ClusterId
 	svol.Info.Id = idgen.GenUUID()
 
 	// Set default name
@@ -104,33 +104,27 @@ func (sv *SubvolumeEntry) createSubvolume(db wdb.RODB,
 
 	godbc.Require(db != nil)
 
-	svr, host, volume, err := sv.createSubvolumeRequest(db)
+	svr, host, err := sv.createSubvolumeRequest(db)
 	if err != nil {
 		return err
 	}
 
-	if _, err := executor.SubvolumeCreate(host, volume, svr); err != nil {
+	if _, err := executor.SubvolumeCreate(host, DirPoolVolumeName, svr); err != nil {
 		return err
 	}
 	return nil
 }
 
 func (sv *SubvolumeEntry) createSubvolumeRequest(db wdb.RODB) (*executors.SubvolumeRequest,
-	string, string, error) {
+	string, error) {
 
 	godbc.Require(db != nil)
 
 	svr := &executors.SubvolumeRequest{}
-	var sshhost, volume string
+	var sshhost string
 	err := db.View(func(tx *bolt.Tx) error {
-		vol, err := NewVolumeEntryFromId(tx, sv.Info.VolumeId)
-		if err != nil {
-			return err
-		}
 
-		volume = vol.Info.Name
-
-		cluster, err := NewClusterEntryFromId(tx, vol.Info.Cluster)
+		cluster, err := NewClusterEntryFromId(tx, sv.Info.ClusterId)
 		if err != nil {
 			return err
 		}
@@ -146,17 +140,17 @@ func (sv *SubvolumeEntry) createSubvolumeRequest(db wdb.RODB) (*executors.Subvol
 		return nil
 	})
 	if err != nil {
-		return nil, "", "", err
+		return nil, "", err
 	}
 
 	if sshhost == "" {
-		return nil, "", "", errors.New("failed to find host for creating subvolme for volume " + volume)
+		return nil, "", errors.New("failed to find host for creating subvolme for cluster " + sv.Info.ClusterId)
 	}
 
 	svr.Name = sv.Info.Name
 	svr.Size = sv.Info.Size
 
-	return svr, sshhost, volume, nil
+	return svr, sshhost, nil
 }
 
 func (sv *SubvolumeEntry) destroySubvolume(db wdb.RODB,
@@ -164,16 +158,9 @@ func (sv *SubvolumeEntry) destroySubvolume(db wdb.RODB,
 
 	godbc.Require(db != nil)
 
-	var sshhost, volume string
+	var sshhost string
 	err := db.View(func(tx *bolt.Tx) error {
-		vol, err := NewVolumeEntryFromId(tx, sv.Info.VolumeId)
-		if err != nil {
-			return err
-		}
-
-		volume = vol.Info.Name
-
-		cluster, err := NewClusterEntryFromId(tx, vol.Info.Cluster)
+		cluster, err := NewClusterEntryFromId(tx, sv.Info.ClusterId)
 		if err != nil {
 			return err
 		}
@@ -193,10 +180,10 @@ func (sv *SubvolumeEntry) destroySubvolume(db wdb.RODB,
 	}
 
 	if sshhost == "" {
-		return errors.New("failed to find host for destroying subvolme for volume " + volume)
+		return errors.New("failed to find host for destroying subvolme for cluster " + sv.Info.ClusterId)
 	}
 
-	if err := executor.SubvolumeDestroy(sshhost, volume, sv.Info.Name); err != nil {
+	if err := executor.SubvolumeDestroy(sshhost, DirPoolVolumeName, sv.Info.Name); err != nil {
 		return err
 	}
 
@@ -216,7 +203,7 @@ func (sv *SubvolumeEntry) NewInfoResponse(tx *bolt.Tx) (*api.SubvolumeInfoRespon
 	info.Size = sv.Info.Size
 	info.Name = sv.Info.Name
 	info.Id = sv.Info.Id
-	info.VolumeId = sv.Info.VolumeId
+	info.ClusterId = sv.Info.ClusterId
 
 	return info, nil
 }
