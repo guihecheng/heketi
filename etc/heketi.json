@@ -113,5 +113,7 @@
 
     "_post_request_volume_options": "Volume options that will be applied for all volumes created. To be used to override volume options in volume create request.",
     "post_request_volume_options": ""
+
+    dir_pool_volume_name: "heketiDirPoolVolume"
   }
 }
