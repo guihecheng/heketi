@@ -190,6 +190,9 @@ func (app *App) setup(conf *GlusterFSConfig) error {
 	// Set block settings
 	app.setBlockSettings()
 
+	// Set dir settings
+	app.setDirSettings()
+
 	// initialize sub-objects and background tasks
 	app.initOpTracker()
 	app.initNodeMonitor()
@@ -452,6 +455,14 @@ func (a *App) setBlockSettings() {
 	if a.conf.BlockHostingVolumeOptions != "" {
 		logger.Info("Block: New Block Hosting Volume Options: %v", a.conf.BlockHostingVolumeOptions)
 		BlockHostingVolumeOptions = a.conf.BlockHostingVolumeOptions
+	}
+
+}
+
+func (a *App) setDirSettings() {
+	if a.conf.DirPoolVolumeName != "" {
+		logger.Info("Dir: Dir Pool Volume Name: %v", a.conf.DirPoolVolumeName)
+		DirPoolVolumeName = a.conf.DirPoolVolumeName
 	}
 
 }
