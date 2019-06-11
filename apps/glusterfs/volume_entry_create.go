@@ -137,7 +137,7 @@ func (v *VolumeEntry) createVolumeRequest(db wdb.RODB,
 	vr.GlusterVolumeOptions = append(vr.GlusterVolumeOptions,
 		fmt.Sprintf("%s %s", HEKETI_ID_KEY, v.Info.Id))
 	vr.Arbiter = v.HasArbiterOption()
-	vr.Subvolume = v.HasSubvolumeOption()
+	vr.Dirvolume = v.HasDirvolumeOption()
 
 	return vr, sshhost, nil
 }

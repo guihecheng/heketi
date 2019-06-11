@@ -12,56 +12,56 @@ import (
 )
 
 var (
-	sv_size    int
-	sv_name    string
+	dv_size    int
+	dv_name    string
 	cluster_id string
 )
 
 func init() {
-	RootCmd.AddCommand(subvolumeCommand)
-	subvolumeCommand.AddCommand(subvolumeCreateCommand)
-	subvolumeCommand.AddCommand(subvolumeDeleteCommand)
-	subvolumeCommand.AddCommand(subvolumeInfoCommand)
-	subvolumeCommand.AddCommand(subvolumeListCommand)
+	RootCmd.AddCommand(dirvolumeCommand)
+	dirvolumeCommand.AddCommand(dirvolumeCreateCommand)
+	dirvolumeCommand.AddCommand(dirvolumeDeleteCommand)
+	dirvolumeCommand.AddCommand(dirvolumeInfoCommand)
+	dirvolumeCommand.AddCommand(dirvolumeListCommand)
 
-	subvolumeCreateCommand.Flags().IntVar(&sv_size, "size", 0,
-		"\n\tSize of subvolume in GiB")
-	subvolumeCreateCommand.Flags().StringVar(&cluster_id, "cluster", "",
-		"\n\tId of cluster where subvolumes resides.")
-	subvolumeCreateCommand.Flags().StringVar(&sv_name, "name", "",
-		"\n\tOptional: Name of subvolume. Only set if really necessary")
+	dirvolumeCreateCommand.Flags().IntVar(&dv_size, "size", 0,
+		"\n\tSize of dirvolume in GiB")
+	dirvolumeCreateCommand.Flags().StringVar(&cluster_id, "cluster", "",
+		"\n\tId of cluster where dirvolumes resides.")
+	dirvolumeCreateCommand.Flags().StringVar(&dv_name, "name", "",
+		"\n\tOptional: Name of dirvolume. Only set if really necessary")
 
-	subvolumeCreateCommand.SilenceUsage = true
-	subvolumeDeleteCommand.SilenceUsage = true
-	subvolumeInfoCommand.SilenceUsage = true
-	subvolumeListCommand.SilenceUsage = true
+	dirvolumeCreateCommand.SilenceUsage = true
+	dirvolumeDeleteCommand.SilenceUsage = true
+	dirvolumeInfoCommand.SilenceUsage = true
+	dirvolumeListCommand.SilenceUsage = true
 }
 
-var subvolumeCommand = &cobra.Command{
-	Use:   "subvolume",
-	Short: "Heketi Subvolume Management",
-	Long:  "Heketi Subvolume Management",
+var dirvolumeCommand = &cobra.Command{
+	Use:   "dirvolume",
+	Short: "Heketi Dirvolume Management",
+	Long:  "Heketi Dirvolume Management",
 }
 
-var subvolumeCreateCommand = &cobra.Command{
+var dirvolumeCreateCommand = &cobra.Command{
 	Use:   "create",
-	Short: "Create a subvolume under a GlusterFS volume",
-	Long:  "Create a subvolume under a GlusterFS volume",
-	Example: `  * Create a 100GiB subvolume under a volume:
-      $ heketi-cli subvolume create --size=100 --cluster=subvolume-backend-cluster-id`,
+	Short: "Create a dirvolume under a GlusterFS volume",
+	Long:  "Create a dirvolume under a GlusterFS volume",
+	Example: `  * Create a 100GiB dirvolume under a volume:
+      $ heketi-cli dirvolume create --size=100 --cluster=dirvolume-backend-cluster-id`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		// Check subvolume size
-		if sv_size == 0 {
-			return errors.New("Missing subvolume size")
+		// Check dirvolume size
+		if dv_size == 0 {
+			return errors.New("Missing dirvolume size")
 		}
 
 		// Create request blob
-		req := &api.SubvolumeCreateRequest{}
-		req.Size = sv_size
+		req := &api.DirvolumeCreateRequest{}
+		req.Size = dv_size
 		req.ClusterId = cluster_id
 
-		if sv_name != "" {
-			req.Name = sv_name
+		if dv_name != "" {
+			req.Name = dv_name
 		}
 
 		// Create a client
@@ -70,41 +70,41 @@ var subvolumeCreateCommand = &cobra.Command{
 			return err
 		}
 
-		// Add subvolume
-		subvolume, err := heketi.SubvolumeCreate(req)
+		// Add dirvolume
+		dirvolume, err := heketi.DirvolumeCreate(req)
 		if err != nil {
 			return err
 		}
 
 		if options.Json {
-			data, err := json.Marshal(subvolume)
+			data, err := json.Marshal(dirvolume)
 			if err != nil {
 				return err
 			}
 			fmt.Fprintf(stdout, string(data))
 		} else {
-			printSubvolumeInfo(subvolume)
+			printDirvolumeInfo(dirvolume)
 		}
 
 		return nil
 	},
 }
 
-var subvolumeDeleteCommand = &cobra.Command{
+var dirvolumeDeleteCommand = &cobra.Command{
 	Use:     "delete",
-	Short:   "Deletes the subvolume",
-	Long:    "Deletes the subvolume",
-	Example: "  $ heketi-cli subvolume delete subvolume-id",
+	Short:   "Deletes the dirvolume",
+	Long:    "Deletes the dirvolume",
+	Example: "  $ heketi-cli dirvolume delete dirvolume-id",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		s := cmd.Flags().Args()
 
 		//ensure proper number of args
 		if len(s) < 1 {
-			return errors.New("Subvolume id missing")
+			return errors.New("Dirvolume id missing")
 		}
 
-		//set subvolumeId
-		subvolumeId := cmd.Flags().Arg(0)
+		//set dirvolumeId
+		dirvolumeId := cmd.Flags().Arg(0)
 
 		// Create a client
 		heketi, err := newHeketiClient()
@@ -113,29 +113,29 @@ var subvolumeDeleteCommand = &cobra.Command{
 		}
 
 		//set url
-		err = heketi.SubvolumeDelete(subvolumeId)
+		err = heketi.DirvolumeDelete(dirvolumeId)
 		if err == nil {
-			fmt.Fprintf(stdout, "Subvolume %v deleted\n", subvolumeId)
+			fmt.Fprintf(stdout, "Dirvolume %v deleted\n", dirvolumeId)
 		}
 
 		return err
 	},
 }
 
-var subvolumeInfoCommand = &cobra.Command{
+var dirvolumeInfoCommand = &cobra.Command{
 	Use:     "info",
-	Short:   "Retrieves information about the subvolume",
-	Long:    "Retrieves information about the subvolume",
-	Example: "  $ heketi-cli volume info subvolume-id",
+	Short:   "Retrieves information about the dirvolume",
+	Long:    "Retrieves information about the dirvolume",
+	Example: "  $ heketi-cli volume info dirvolume-id",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		//ensure proper number of args
 		s := cmd.Flags().Args()
 		if len(s) < 1 {
-			return errors.New("Subvolume id missing")
+			return errors.New("Dirvolume id missing")
 		}
 
-		// Set subvolume id
-		subvolumeId := cmd.Flags().Arg(0)
+		// Set dirvolume id
+		dirvolumeId := cmd.Flags().Arg(0)
 
 		// Create a client to talk to Heketi
 		heketi, err := newHeketiClient()
@@ -143,7 +143,7 @@ var subvolumeInfoCommand = &cobra.Command{
 			return err
 		}
 
-		info, err := heketi.SubvolumeInfo(subvolumeId)
+		info, err := heketi.DirvolumeInfo(dirvolumeId)
 		if err != nil {
 			return err
 		}
@@ -155,18 +155,18 @@ var subvolumeInfoCommand = &cobra.Command{
 			}
 			fmt.Fprintf(stdout, string(data))
 		} else {
-			printSubvolumeInfo(info)
+			printDirvolumeInfo(info)
 		}
 		return nil
 
 	},
 }
 
-var subvolumeListCommand = &cobra.Command{
+var dirvolumeListCommand = &cobra.Command{
 	Use:     "list",
-	Short:   "Lists the subvolumes managed by Heketi",
-	Long:    "Lists the subvolumes managed by Heketi",
-	Example: "  $ heketi-cli subvolume list",
+	Short:   "Lists the dirvolumes managed by Heketi",
+	Long:    "Lists the dirvolumes managed by Heketi",
+	Example: "  $ heketi-cli dirvolume list",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		// Create a client
 		heketi, err := newHeketiClient()
@@ -174,8 +174,8 @@ var subvolumeListCommand = &cobra.Command{
 			return err
 		}
 
-		// List subvolumes
-		list, err := heketi.SubvolumeList()
+		// List dirvolumes
+		list, err := heketi.DirvolumeList()
 		if err != nil {
 			return err
 		}
@@ -187,16 +187,16 @@ var subvolumeListCommand = &cobra.Command{
 			}
 			fmt.Fprintf(stdout, string(data))
 		} else {
-			for _, id := range list.Subvolumes {
-				subvolume, err := heketi.SubvolumeInfo(id)
+			for _, id := range list.Dirvolumes {
+				dirvolume, err := heketi.DirvolumeInfo(id)
 				if err != nil {
 					return err
 				}
 
 				fmt.Fprintf(stdout, "Id:%-35v Cluster:%-35v Name:%v\n",
 					id,
-					subvolume.ClusterId,
-					subvolume.Name)
+					dirvolume.ClusterId,
+					dirvolume.Name)
 			}
 		}
 
@@ -204,20 +204,20 @@ var subvolumeListCommand = &cobra.Command{
 	},
 }
 
-var subvolumeTemplate = `
+var dirvolumeTemplate = `
 {{- /* remove whitespace */ -}}
 Name: {{.Name}}
 Size: {{.Size}}
-Subvolume Id: {{.Id}}
+Dirvolume Id: {{.Id}}
 Cluster Id: {{.ClusterId}}
 `
 
-func printSubvolumeInfo(subvolume *api.SubvolumeInfoResponse) {
-	t, err := template.New("subvolume").Parse(subvolumeTemplate)
+func printDirvolumeInfo(dirvolume *api.DirvolumeInfoResponse) {
+	t, err := template.New("dirvolume").Parse(dirvolumeTemplate)
 	if err != nil {
 		panic(err)
 	}
-	err = t.Execute(os.Stdout, subvolume)
+	err = t.Execute(os.Stdout, dirvolume)
 	if err != nil {
 		panic(err)
 	}

@@ -211,22 +211,22 @@ func expandSizeFromOp(op *PendingOperationEntry) (sizeGB int, e error) {
 	return
 }
 
-func subvolumesFromOp(db wdb.RODB,
-	op *PendingOperationEntry) ([]*SubvolumeEntry, error) {
+func dirvolumesFromOp(db wdb.RODB,
+	op *PendingOperationEntry) ([]*DirvolumeEntry, error) {
 
-	subvolumeEntries := []*SubvolumeEntry{}
+	dirvolumeEntries := []*DirvolumeEntry{}
 	err := db.View(func(tx *bolt.Tx) error {
 		for _, a := range op.Actions {
 			switch a.Change {
-			case OpAddSubvolume, OpDeleteSubvolume:
-				sv, err := NewSubvolumeEntryFromId(tx, a.Id)
+			case OpAddDirvolume, OpDeleteDirvolume:
+				dv, err := NewDirvolumeEntryFromId(tx, a.Id)
 				if err != nil {
 					return err
 				}
-				subvolumeEntries = append(subvolumeEntries, sv)
+				dirvolumeEntries = append(dirvolumeEntries, dv)
 			}
 		}
 		return nil
 	})
-	return subvolumeEntries, err
+	return dirvolumeEntries, err
 }

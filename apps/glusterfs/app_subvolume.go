@@ -10,8 +10,8 @@ import (
 	"github.com/heketi/heketi/pkg/utils"
 )
 
-func (a *App) SubvolumeCreate(w http.ResponseWriter, r *http.Request) {
-	var msg api.SubvolumeCreateRequest
+func (a *App) DirvolumeCreate(w http.ResponseWriter, r *http.Request) {
+	var msg api.DirvolumeCreateRequest
 	err := utils.GetJsonFromRequest(r, &msg)
 	if err != nil {
 		http.Error(w, "request unable to be parsed", 422)
@@ -27,8 +27,8 @@ func (a *App) SubvolumeCreate(w http.ResponseWriter, r *http.Request) {
 	*/
 
 	if msg.Size < 1 {
-		http.Error(w, "Invalid subvolume size", http.StatusBadRequest)
-		logger.LogError("Invalid subvolume size")
+		http.Error(w, "Invalid dirvolume size", http.StatusBadRequest)
+		logger.LogError("Invalid dirvolume size")
 		return
 	}
 
@@ -51,22 +51,22 @@ func (a *App) SubvolumeCreate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	svol := NewSubvolumeEntryFromRequest(&msg)
+	dvol := NewDirvolumeEntryFromRequest(&msg)
 
-	svc := NewSubvolumeCreateOperation(svol, a.db)
-	if err := AsyncHttpOperation(a, w, r, svc); err != nil {
-		OperationHttpErrorf(w, err, "Failed to allocate new subvolume: %v", err)
+	dvc := NewDirvolumeCreateOperation(dvol, a.db)
+	if err := AsyncHttpOperation(a, w, r, dvc); err != nil {
+		OperationHttpErrorf(w, err, "Failed to allocate new dirvolume: %v", err)
 		return
 	}
 }
 
-func (a *App) SubvolumeInfo(w http.ResponseWriter, r *http.Request) {
+func (a *App) DirvolumeInfo(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["id"]
 
-	var info *api.SubvolumeInfoResponse
+	var info *api.DirvolumeInfoResponse
 	err := a.db.View(func(tx *bolt.Tx) error {
-		entry, err := NewSubvolumeEntryFromId(tx, id)
+		entry, err := NewDirvolumeEntryFromId(tx, id)
 		if err == ErrNotFound /* || !entry.Visible() */ {
 			// treat an invisible entry like it doesn't exist
 			http.Error(w, "Id not found", http.StatusNotFound)
@@ -95,15 +95,15 @@ func (a *App) SubvolumeInfo(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (a *App) SubvolumeDelete(w http.ResponseWriter, r *http.Request) {
+func (a *App) DirvolumeDelete(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["id"]
 
-	var svol *SubvolumeEntry
+	var dvol *DirvolumeEntry
 	err := a.db.View(func(tx *bolt.Tx) error {
 
 		var err error
-		svol, err = NewSubvolumeEntryFromId(tx, id)
+		dvol, err = NewDirvolumeEntryFromId(tx, id)
 		if err == ErrNotFound {
 			http.Error(w, err.Error(), http.StatusNotFound)
 			return err
@@ -118,21 +118,21 @@ func (a *App) SubvolumeDelete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	svd := NewSubvolumeDeleteOperation(svol, a.db)
-	if err := AsyncHttpOperation(a, w, r, svd); err != nil {
-		OperationHttpErrorf(w, err, "Failed to set up subvolume delete: %v", err)
+	dvd := NewDirvolumeDeleteOperation(dvol, a.db)
+	if err := AsyncHttpOperation(a, w, r, dvd); err != nil {
+		OperationHttpErrorf(w, err, "Failed to set up dirvolume delete: %v", err)
 		return
 	}
 }
 
-func (a *App) SubvolumeList(w http.ResponseWriter, r *http.Request) {
+func (a *App) DirvolumeList(w http.ResponseWriter, r *http.Request) {
 
-	var list api.SubvolumeListResponse
+	var list api.DirvolumeListResponse
 
 	err := a.db.View(func(tx *bolt.Tx) error {
 		var err error
 
-		list.Subvolumes, err = ListCompleteSubvolumes(tx)
+		list.Dirvolumes, err = ListCompleteDirvolumes(tx)
 		if err != nil {
 			return err
 		}

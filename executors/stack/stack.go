@@ -342,10 +342,10 @@ func (es *ExecutorStack) ListBlockVolumes(host string, blockhostingvolume string
 	return nil, NotSupportedError
 }
 
-func (es *ExecutorStack) SubvolumeCreate(host string, volume string,
-	subvolume *executors.SubvolumeRequest) (*executors.Subvolume, error) {
+func (es *ExecutorStack) DirvolumeCreate(host string, volume string,
+	dirvolume *executors.DirvolumeRequest) (*executors.Dirvolume, error) {
 	for _, e := range es.executors {
-		v, err := e.SubvolumeCreate(host, volume, subvolume)
+		v, err := e.DirvolumeCreate(host, volume, dirvolume)
 		if err != NotSupportedError {
 			return v, err
 		}
@@ -353,10 +353,10 @@ func (es *ExecutorStack) SubvolumeCreate(host string, volume string,
 	return nil, NotSupportedError
 }
 
-func (es *ExecutorStack) SubvolumeDestroy(host string, volume string,
-	subvolume string) error {
+func (es *ExecutorStack) DirvolumeDestroy(host string, volume string,
+	dirvolume string) error {
 	for _, e := range es.executors {
-		err := e.SubvolumeDestroy(host, volume, subvolume)
+		err := e.DirvolumeDestroy(host, volume, dirvolume)
 		if err != NotSupportedError {
 			return err
 		}
@@ -364,10 +364,10 @@ func (es *ExecutorStack) SubvolumeDestroy(host string, volume string,
 	return NotSupportedError
 }
 
-func (es *ExecutorStack) SubvolumeInfo(host string, volume string,
-	subvolume string) (*executors.Subvolume, error) {
+func (es *ExecutorStack) DirvolumeInfo(host string, volume string,
+	dirvolume string) (*executors.Dirvolume, error) {
 	for _, e := range es.executors {
-		v, err := e.SubvolumeInfo(host, volume, subvolume)
+		v, err := e.DirvolumeInfo(host, volume, dirvolume)
 		if err != NotSupportedError {
 			return v, err
 		}
@@ -375,9 +375,9 @@ func (es *ExecutorStack) SubvolumeInfo(host string, volume string,
 	return nil, NotSupportedError
 }
 
-func (es *ExecutorStack) SubvolumesInfo(host string, volume string) (*executors.SubvolInfo, error) {
+func (es *ExecutorStack) DirvolumesInfo(host string, volume string) (*executors.SubvolInfo, error) {
 	for _, e := range es.executors {
-		v, err := e.SubvolumesInfo(host, volume)
+		v, err := e.DirvolumesInfo(host, volume)
 		if err != NotSupportedError {
 			return v, err
 		}

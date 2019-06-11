@@ -9,232 +9,232 @@ import (
 	"github.com/boltdb/bolt"
 )
 
-type SubvolumeCreateOperation struct {
+type DirvolumeCreateOperation struct {
 	OperationManager
-	svol       *SubvolumeEntry
+	dvol       *DirvolumeEntry
 	maxRetries int
 }
 
-func NewSubvolumeCreateOperation(
-	svol *SubvolumeEntry, db wdb.DB) *SubvolumeCreateOperation {
+func NewDirvolumeCreateOperation(
+	dvol *DirvolumeEntry, db wdb.DB) *DirvolumeCreateOperation {
 
-	return &SubvolumeCreateOperation{
+	return &DirvolumeCreateOperation{
 		OperationManager: OperationManager{
 			db: db,
 			op: NewPendingOperationEntry(NEW_ID),
 		},
 		maxRetries: VOLUME_MAX_RETRIES,
-		svol:       svol,
+		dvol:       dvol,
 	}
 }
 
-func loadSubvolumeCreateOperation(
-	db wdb.DB, p *PendingOperationEntry) (*SubvolumeCreateOperation, error) {
+func loadDirvolumeCreateOperation(
+	db wdb.DB, p *PendingOperationEntry) (*DirvolumeCreateOperation, error) {
 
-	svols, err := subvolumesFromOp(db, p)
+	dvols, err := dirvolumesFromOp(db, p)
 	if err != nil {
 		return nil, err
 	}
-	if len(svols) != 1 {
+	if len(dvols) != 1 {
 		return nil, fmt.Errorf(
-			"Incorrect number of subvolumes (%v) for create operation: %v",
-			len(svols), p.Id)
+			"Incorrect number of dirvolumes (%v) for create operation: %v",
+			len(dvols), p.Id)
 	}
 
-	return &SubvolumeCreateOperation{
+	return &DirvolumeCreateOperation{
 		OperationManager: OperationManager{
 			db: db,
 			op: p,
 		},
 		maxRetries: VOLUME_MAX_RETRIES,
-		svol:       svols[0],
+		dvol:       dvols[0],
 	}, nil
 }
 
-func (svc *SubvolumeCreateOperation) Label() string {
-	return "Create Subvolume"
+func (dvc *DirvolumeCreateOperation) Label() string {
+	return "Create Dirvolume"
 }
 
-func (svc *SubvolumeCreateOperation) ResourceUrl() string {
-	return fmt.Sprintf("/subvolumes/%v", svc.svol.Info.Id)
+func (dvc *DirvolumeCreateOperation) ResourceUrl() string {
+	return fmt.Sprintf("/dirvolumes/%v", dvc.dvol.Info.Id)
 }
 
-func (svc *SubvolumeCreateOperation) MaxRetries() int {
-	return svc.maxRetries
+func (dvc *DirvolumeCreateOperation) MaxRetries() int {
+	return dvc.maxRetries
 }
 
-func (svc *SubvolumeCreateOperation) Build() error {
-	return svc.db.Update(func(tx *bolt.Tx) error {
-		svc.op.RecordAddSubvolume(svc.svol)
-		if e := svc.svol.Save(tx); e != nil {
+func (dvc *DirvolumeCreateOperation) Build() error {
+	return dvc.db.Update(func(tx *bolt.Tx) error {
+		dvc.op.RecordAddDirvolume(dvc.dvol)
+		if e := dvc.dvol.Save(tx); e != nil {
 			return e
 		}
-		if e := svc.op.Save(tx); e != nil {
+		if e := dvc.op.Save(tx); e != nil {
 			return e
 		}
 		return nil
 	})
 }
 
-func (svc *SubvolumeCreateOperation) Exec(executor executors.Executor) error {
-	err := svc.svol.createSubvolume(svc.db, executor)
+func (dvc *DirvolumeCreateOperation) Exec(executor executors.Executor) error {
+	err := dvc.dvol.createDirvolume(dvc.db, executor)
 	if err != nil {
-		logger.LogError("Error executing create subvolume: %v", err)
+		logger.LogError("Error executing create dirvolume: %v", err)
 		return OperationRetryError{err}
 	}
 	return nil
 }
 
-func (svc *SubvolumeCreateOperation) Finalize() error {
-	return svc.db.Update(func(tx *bolt.Tx) error {
-		svc.op.FinalizeSubvolume(svc.svol)
-		if e := svc.svol.Save(tx); e != nil {
+func (dvc *DirvolumeCreateOperation) Finalize() error {
+	return dvc.db.Update(func(tx *bolt.Tx) error {
+		dvc.op.FinalizeDirvolume(dvc.dvol)
+		if e := dvc.dvol.Save(tx); e != nil {
 			return e
 		}
 
-		svc.op.Delete(tx)
+		dvc.op.Delete(tx)
 		return nil
 	})
 }
 
-func (svc *SubvolumeCreateOperation) Rollback(executor executors.Executor) error {
-	return rollbackViaClean(svc, executor)
+func (dvc *DirvolumeCreateOperation) Rollback(executor executors.Executor) error {
+	return rollbackViaClean(dvc, executor)
 }
 
-func (svc *SubvolumeCreateOperation) Clean(executor executors.Executor) error {
+func (dvc *DirvolumeCreateOperation) Clean(executor executors.Executor) error {
 	var err error
-	logger.Info("Starting Clean for %v op:%v", svc.Label(), svc.op.Id)
-	err = removeSubvolumeWithOp(svc.db, executor, svc.op, svc.svol.Info.Id)
+	logger.Info("Starting Clean for %v op:%v", dvc.Label(), dvc.op.Id)
+	err = removeDirvolumeWithOp(dvc.db, executor, dvc.op, dvc.dvol.Info.Id)
 	return err
 }
 
-func (svc *SubvolumeCreateOperation) CleanDone() error {
-	logger.Info("Clean is done for %v op:%v", svc.Label(), svc.op.Id)
+func (dvc *DirvolumeCreateOperation) CleanDone() error {
+	logger.Info("Clean is done for %v op:%v", dvc.Label(), dvc.op.Id)
 	var err error
-	// set in-memory copy of subvolume to match (torn down) db state
-	svc.svol, err = expungeSubvolumeWithOp(svc.db, svc.op, svc.svol.Info.Id)
+	// set in-memory copy of dirvolume to match (torn down) db state
+	dvc.dvol, err = expungeDirvolumeWithOp(dvc.db, dvc.op, dvc.dvol.Info.Id)
 	return err
 }
 
-type SubvolumeDeleteOperation struct {
+type DirvolumeDeleteOperation struct {
 	OperationManager
 	noRetriesOperation
-	svol *SubvolumeEntry
+	dvol *DirvolumeEntry
 }
 
-func NewSubvolumeDeleteOperation(
-	svol *SubvolumeEntry, db wdb.DB) *SubvolumeDeleteOperation {
+func NewDirvolumeDeleteOperation(
+	dvol *DirvolumeEntry, db wdb.DB) *DirvolumeDeleteOperation {
 
-	return &SubvolumeDeleteOperation{
+	return &DirvolumeDeleteOperation{
 		OperationManager: OperationManager{
 			db: db,
 			op: NewPendingOperationEntry(NEW_ID),
 		},
-		svol: svol,
+		dvol: dvol,
 	}
 }
 
-func loadSubvolumeDeleteOperation(
-	db wdb.DB, p *PendingOperationEntry) (*SubvolumeDeleteOperation, error) {
+func loadDirvolumeDeleteOperation(
+	db wdb.DB, p *PendingOperationEntry) (*DirvolumeDeleteOperation, error) {
 
-	svols, err := subvolumesFromOp(db, p)
+	dvols, err := dirvolumesFromOp(db, p)
 	if err != nil {
 		return nil, err
 	}
-	if len(svols) != 1 {
+	if len(dvols) != 1 {
 		return nil, fmt.Errorf(
-			"Incorrect number of subvolumes (%v) for delete operation: %v",
-			len(svols), p.Id)
+			"Incorrect number of dirvolumes (%v) for delete operation: %v",
+			len(dvols), p.Id)
 	}
 
-	return &SubvolumeDeleteOperation{
+	return &DirvolumeDeleteOperation{
 		OperationManager: OperationManager{
 			db: db,
 			op: p,
 		},
-		svol: svols[0],
+		dvol: dvols[0],
 	}, nil
 }
 
-func (svd *SubvolumeDeleteOperation) Label() string {
-	return "Delete Subvolume"
+func (dvd *DirvolumeDeleteOperation) Label() string {
+	return "Delete Dirvolume"
 }
 
-func (svd *SubvolumeDeleteOperation) ResourceUrl() string {
+func (dvd *DirvolumeDeleteOperation) ResourceUrl() string {
 	return ""
 }
 
-func (svd *SubvolumeDeleteOperation) Build() error {
-	return svd.db.Update(func(tx *bolt.Tx) error {
-		sv, err := NewSubvolumeEntryFromId(tx, svd.svol.Info.Id)
+func (dvd *DirvolumeDeleteOperation) Build() error {
+	return dvd.db.Update(func(tx *bolt.Tx) error {
+		dv, err := NewDirvolumeEntryFromId(tx, dvd.dvol.Info.Id)
 		if err != nil {
 			return err
 		}
-		svd.svol = sv
-		if svd.svol.Pending.Id != "" {
-			logger.LogError("Pending subvolume %v can not be deleted",
-				svd.svol.Info.Id)
+		dvd.dvol = dv
+		if dvd.dvol.Pending.Id != "" {
+			logger.LogError("Pending dirvolume %v can not be deleted",
+				dvd.dvol.Info.Id)
 			return ErrConflict
 		}
-		svd.op.RecordDeleteSubvolume(svd.svol)
-		if e := svd.op.Save(tx); e != nil {
+		dvd.op.RecordDeleteDirvolume(dvd.dvol)
+		if e := dvd.op.Save(tx); e != nil {
 			return e
 		}
-		if e := svd.svol.Save(tx); e != nil {
+		if e := dvd.dvol.Save(tx); e != nil {
 			return e
 		}
 		return nil
 	})
 }
 
-func (svd *SubvolumeDeleteOperation) Exec(executor executors.Executor) error {
+func (dvd *DirvolumeDeleteOperation) Exec(executor executors.Executor) error {
 	var err error
-	err = removeSubvolumeWithOp(svd.db, executor, svd.op, svd.svol.Info.Id)
+	err = removeDirvolumeWithOp(dvd.db, executor, dvd.op, dvd.dvol.Info.Id)
 	if err != nil {
-		logger.LogError("Error executing delete subvolume: %v", err)
+		logger.LogError("Error executing delete dirvolume: %v", err)
 	}
 	return err
 }
 
-func (svd *SubvolumeDeleteOperation) Rollback(executor executors.Executor) error {
-	return svd.db.Update(func(tx *bolt.Tx) error {
-		svd.op.FinalizeSubvolume(svd.svol)
-		if err := svd.svol.Save(tx); err != nil {
+func (dvd *DirvolumeDeleteOperation) Rollback(executor executors.Executor) error {
+	return dvd.db.Update(func(tx *bolt.Tx) error {
+		dvd.op.FinalizeDirvolume(dvd.dvol)
+		if err := dvd.dvol.Save(tx); err != nil {
 			return err
 		}
 
-		svd.op.Delete(tx)
+		dvd.op.Delete(tx)
 		return nil
 	})
 }
 
-func (svd *SubvolumeDeleteOperation) Finalize() error {
-	_, err := expungeSubvolumeWithOp(svd.db, svd.op, svd.svol.Info.Id)
+func (dvd *DirvolumeDeleteOperation) Finalize() error {
+	_, err := expungeDirvolumeWithOp(dvd.db, dvd.op, dvd.dvol.Info.Id)
 	return err
 }
 
-func (svd *SubvolumeDeleteOperation) Clean(executor executors.Executor) error {
-	logger.Info("Starting Clean for %v op:%v", svd.Label(), svd.op.Id)
-	return svd.Exec(executor)
+func (dvd *DirvolumeDeleteOperation) Clean(executor executors.Executor) error {
+	logger.Info("Starting Clean for %v op:%v", dvd.Label(), dvd.op.Id)
+	return dvd.Exec(executor)
 }
 
-func (svd *SubvolumeDeleteOperation) CleanDone() error {
-	logger.Info("Clean is done for %v op:%v", svd.Label(), svd.op.Id)
-	return svd.Finalize()
+func (dvd *DirvolumeDeleteOperation) CleanDone() error {
+	logger.Info("Clean is done for %v op:%v", dvd.Label(), dvd.op.Id)
+	return dvd.Finalize()
 }
 
-func removeSubvolumeWithOp(
+func removeDirvolumeWithOp(
 	db wdb.RODB, executor executors.Executor,
-	op *PendingOperationEntry, svolId string) error {
+	op *PendingOperationEntry, dvolId string) error {
 
 	var (
 		err error
-		sv  *SubvolumeEntry
+		dv  *DirvolumeEntry
 	)
-	logger.Info("preparing to remove subvolume %v in op:%v", svolId, op.Id)
+	logger.Info("preparing to remove dirvolume %v in op:%v", dvolId, op.Id)
 	err = db.View(func(tx *bolt.Tx) error {
 		// get a fresh volume object from db
-		sv, err = NewSubvolumeEntryFromId(tx, svolId)
+		dv, err = NewDirvolumeEntryFromId(tx, dvolId)
 		if err != nil {
 			return err
 		}
@@ -242,26 +242,26 @@ func removeSubvolumeWithOp(
 	})
 	if err != nil {
 		logger.LogError(
-			"failed to get state needed to destroy subvolume: %v", err)
+			"failed to get state needed to destroy dirvolume: %v", err)
 		return err
 	}
-	logger.Info("executing removal of subvolume %v in op:%v", svolId, op.Id)
-	return sv.destroySubvolume(db, executor)
+	logger.Info("executing removal of dirvolume %v in op:%v", dvolId, op.Id)
+	return dv.destroyDirvolume(db, executor)
 }
 
-func expungeSubvolumeWithOp(
+func expungeDirvolumeWithOp(
 	db wdb.DB,
-	op *PendingOperationEntry, svolId string) (*SubvolumeEntry, error) {
+	op *PendingOperationEntry, dvolId string) (*DirvolumeEntry, error) {
 
-	var sv *SubvolumeEntry
-	return sv, db.Update(func(tx *bolt.Tx) error {
+	var dv *DirvolumeEntry
+	return dv, db.Update(func(tx *bolt.Tx) error {
 		var err error
 		txdb := wdb.WrapTx(tx)
-		sv, err = NewSubvolumeEntryFromId(tx, svolId)
+		dv, err = NewDirvolumeEntryFromId(tx, dvolId)
 		if err != nil {
 			return err
 		}
-		if err := sv.teardown(txdb); err != nil {
+		if err := dv.teardown(txdb); err != nil {
 			return err
 		}
 		return op.Delete(tx)

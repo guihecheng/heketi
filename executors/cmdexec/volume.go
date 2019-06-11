@@ -73,7 +73,7 @@ func (s *CmdExecutor) VolumeCreate(host string,
 
 	commands = append(commands, fmt.Sprintf("%v volume start %v", s.glusterCommand(), volume.Name))
 
-	if volume.Subvolume {
+	if volume.Dirvolume {
 		commands = append(commands, fmt.Sprintf("%v volume quota %v enable", s.glusterCommand(), volume.Name))
 	}
 

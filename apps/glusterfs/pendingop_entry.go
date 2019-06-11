@@ -291,22 +291,22 @@ func (p *PendingOperationEntry) RecordRemoveDevice(d *DeviceEntry) {
 	p.Type = OperationRemoveDevice
 }
 
-func (p *PendingOperationEntry) RecordAddSubvolume(sv *SubvolumeEntry) {
-	// track which subvolume this op is created
-	p.recordChange(OpAddSubvolume, sv.Info.Id)
-	p.Type = OperationCreateSubvolume
+func (p *PendingOperationEntry) RecordAddDirvolume(dv *DirvolumeEntry) {
+	// track which dirvolume this op is created
+	p.recordChange(OpAddDirvolume, dv.Info.Id)
+	p.Type = OperationCreateDirvolume
 	// link back from "temporary" object to op
-	sv.Pending.Id = p.Id
+	dv.Pending.Id = p.Id
 }
 
-func (p *PendingOperationEntry) RecordDeleteSubvolume(sv *SubvolumeEntry) {
-	p.recordChange(OpDeleteSubvolume, sv.Info.Id)
-	p.Type = OperationDeleteSubvolume
-	sv.Pending.Id = p.Id
+func (p *PendingOperationEntry) RecordDeleteDirvolume(dv *DirvolumeEntry) {
+	p.recordChange(OpDeleteDirvolume, dv.Info.Id)
+	p.Type = OperationDeleteDirvolume
+	dv.Pending.Id = p.Id
 }
 
-func (p *PendingOperationEntry) FinalizeSubvolume(sv *SubvolumeEntry) {
-	sv.Pending.Id = ""
+func (p *PendingOperationEntry) FinalizeDirvolume(dv *DirvolumeEntry) {
+	dv.Pending.Id = ""
 	return
 }
 

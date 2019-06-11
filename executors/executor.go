@@ -42,10 +42,10 @@ type Executor interface {
 	LVS(host string) (*LVSCommandOutput, error)
 	GetBrickMountStatus(host string) (*BricksMountStatus, error)
 	ListBlockVolumes(host string, blockhostingvolume string) ([]string, error)
-	SubvolumeCreate(host string, volume string, subvolume *SubvolumeRequest) (*Subvolume, error)
-	SubvolumeDestroy(host string, volume string, subvolume string) error
-	SubvolumeInfo(host string, volume string, subvolume string) (*Subvolume, error)
-	SubvolumesInfo(host string, volume string) (*SubvolInfo, error)
+	DirvolumeCreate(host string, volume string, dirvolume *DirvolumeRequest) (*Dirvolume, error)
+	DirvolumeDestroy(host string, volume string, dirvolume string) error
+	DirvolumeInfo(host string, volume string, dirvolume string) (*Dirvolume, error)
+	DirvolumesInfo(host string, volume string) (*SubvolInfo, error)
 }
 
 // Enumerate durability types
@@ -165,8 +165,8 @@ type VolumeRequest struct {
 	Replica int
 	Arbiter bool
 
-	// Subvolume
-	Subvolume bool
+	// Dirvolume
+	Dirvolume bool
 }
 
 type VolumeCloneRequest struct {
@@ -325,12 +325,12 @@ type VolumeDoesNotExistErr struct {
 	Name string
 }
 
-type SubvolumeRequest struct {
+type DirvolumeRequest struct {
 	Name string
 	Size int
 }
 
-type Subvolume struct {
+type Dirvolume struct {
 	XMLName    xml.Name `xml:"limit"`
 	SubVolName string   `xml:"path"`
 	TotalSize  int      `xml:"hard_limit"`
@@ -340,7 +340,7 @@ type Subvolume struct {
 
 type SubvolInfo struct {
 	XMLName    xml.Name    `xml:"volQuota"`
-	SubvolList []Subvolume `xml:"limit"`
+	SubvolList []Dirvolume `xml:"limit"`
 }
 
 func (dne *VolumeDoesNotExistErr) Error() string {

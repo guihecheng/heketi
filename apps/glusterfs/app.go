@@ -41,7 +41,7 @@ const (
 	BOLTDB_BUCKET_DBATTRIBUTE      = "DBATTRIBUTE"
 	DB_CLUSTER_HAS_FILE_BLOCK_FLAG = "DB_CLUSTER_HAS_FILE_BLOCK_FLAG"
 	DB_BRICK_HAS_SUBTYPE_FIELD     = "DB_BRICK_HAS_SUBTYPE_FIELD"
-	BOLTDB_BUCKET_SUBVOLUME        = "SUBVOLUME"
+	BOLTDB_BUCKET_DIRVOLUME        = "DIRVOLUME"
 	DEFAULT_OP_LIMIT               = 8
 )
 
@@ -628,25 +628,25 @@ func (a *App) SetRoutes(router *mux.Router) error {
 
 		// Subolumes
 		rest.Route{
-			Name:        "SubvolumeCreate",
+			Name:        "DirvolumeCreate",
 			Method:      "POST",
-			Pattern:     "/subvolumes",
-			HandlerFunc: a.SubvolumeCreate},
+			Pattern:     "/dirvolumes",
+			HandlerFunc: a.DirvolumeCreate},
 		rest.Route{
-			Name:        "SubvolumeDelete",
+			Name:        "DirvolumeDelete",
 			Method:      "DELETE",
-			Pattern:     "/subvolumes/{id:[A-Fa-f0-9]+}",
-			HandlerFunc: a.SubvolumeDelete},
+			Pattern:     "/dirvolumes/{id:[A-Fa-f0-9]+}",
+			HandlerFunc: a.DirvolumeDelete},
 		rest.Route{
-			Name:        "SubvolumeInfo",
+			Name:        "DirvolumeInfo",
 			Method:      "GET",
-			Pattern:     "/subvolumes/{id:[A-Fa-f0-9]+}",
-			HandlerFunc: a.SubvolumeInfo},
+			Pattern:     "/dirvolumes/{id:[A-Fa-f0-9]+}",
+			HandlerFunc: a.DirvolumeInfo},
 		rest.Route{
-			Name:        "SubvolumeList",
+			Name:        "DirvolumeList",
 			Method:      "GET",
-			Pattern:     "/subvolumes",
-			HandlerFunc: a.SubvolumeList},
+			Pattern:     "/dirvolumes",
+			HandlerFunc: a.DirvolumeList},
 
 		// Backup
 		rest.Route{

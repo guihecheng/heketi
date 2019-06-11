@@ -13,29 +13,29 @@ import (
 	"github.com/lpabon/godbc"
 )
 
-type SubvolumeEntry struct {
-	Info    api.SubvolumeInfo
+type DirvolumeEntry struct {
+	Info    api.DirvolumeInfo
 	Pending PendingItem
 }
 
-func SubvolumeList(tx *bolt.Tx) ([]string, error) {
+func DirvolumeList(tx *bolt.Tx) ([]string, error) {
 
-	list := EntryKeys(tx, BOLTDB_BUCKET_SUBVOLUME)
+	list := EntryKeys(tx, BOLTDB_BUCKET_DIRVOLUME)
 	if list == nil {
 		return nil, ErrAccessList
 	}
 	return list, nil
 }
 
-func NewSubvolumeEntry() *SubvolumeEntry {
-	entry := &SubvolumeEntry{}
+func NewDirvolumeEntry() *DirvolumeEntry {
+	entry := &DirvolumeEntry{}
 	return entry
 }
 
-func NewSubvolumeEntryFromId(tx *bolt.Tx, id string) (*SubvolumeEntry, error) {
+func NewDirvolumeEntryFromId(tx *bolt.Tx, id string) (*DirvolumeEntry, error) {
 	godbc.Require(tx != nil)
 
-	entry := NewSubvolumeEntry()
+	entry := NewDirvolumeEntry()
 	err := EntryLoad(tx, entry, id)
 	if err != nil {
 		return nil, err
@@ -44,54 +44,54 @@ func NewSubvolumeEntryFromId(tx *bolt.Tx, id string) (*SubvolumeEntry, error) {
 	return entry, nil
 }
 
-func NewSubvolumeEntryFromRequest(req *api.SubvolumeCreateRequest) *SubvolumeEntry {
+func NewDirvolumeEntryFromRequest(req *api.DirvolumeCreateRequest) *DirvolumeEntry {
 	godbc.Require(req != nil)
 
-	svol := NewSubvolumeEntry()
-	svol.Info.Size = req.Size
-	svol.Info.ClusterId = req.ClusterId
-	svol.Info.Id = idgen.GenUUID()
+	dvol := NewDirvolumeEntry()
+	dvol.Info.Size = req.Size
+	dvol.Info.ClusterId = req.ClusterId
+	dvol.Info.Id = idgen.GenUUID()
 
 	// Set default name
 	if req.Name == "" {
-		svol.Info.Name = "svol_" + svol.Info.Id
+		dvol.Info.Name = "dvol_" + dvol.Info.Id
 	} else {
-		svol.Info.Name = req.Name
+		dvol.Info.Name = req.Name
 	}
 
-	return svol
+	return dvol
 }
 
-func (sv *SubvolumeEntry) BucketName() string {
-	return BOLTDB_BUCKET_SUBVOLUME
+func (dv *DirvolumeEntry) BucketName() string {
+	return BOLTDB_BUCKET_DIRVOLUME
 }
 
-func (sv *SubvolumeEntry) Save(tx *bolt.Tx) error {
+func (dv *DirvolumeEntry) Save(tx *bolt.Tx) error {
 	godbc.Require(tx != nil)
-	godbc.Require(len(sv.Info.Id) > 0)
+	godbc.Require(len(dv.Info.Id) > 0)
 
-	return EntrySave(tx, sv, sv.Info.Id)
+	return EntrySave(tx, dv, dv.Info.Id)
 }
 
-func (sv *SubvolumeEntry) Delete(tx *bolt.Tx) error {
-	return EntryDelete(tx, sv, sv.Info.Id)
+func (dv *DirvolumeEntry) Delete(tx *bolt.Tx) error {
+	return EntryDelete(tx, dv, dv.Info.Id)
 }
 
-func SubvolumeEntryUpgrade(tx *bolt.Tx) error {
+func DirvolumeEntryUpgrade(tx *bolt.Tx) error {
 	return nil
 }
 
-func (sv *SubvolumeEntry) Marshal() ([]byte, error) {
+func (dv *DirvolumeEntry) Marshal() ([]byte, error) {
 	var buffer bytes.Buffer
 	enc := gob.NewEncoder(&buffer)
-	err := enc.Encode(*sv)
+	err := enc.Encode(*dv)
 
 	return buffer.Bytes(), err
 }
 
-func (sv *SubvolumeEntry) Unmarshal(buffer []byte) error {
+func (dv *DirvolumeEntry) Unmarshal(buffer []byte) error {
 	dec := gob.NewDecoder(bytes.NewReader(buffer))
-	err := dec.Decode(sv)
+	err := dec.Decode(dv)
 	if err != nil {
 		return err
 	}
@@ -99,32 +99,32 @@ func (sv *SubvolumeEntry) Unmarshal(buffer []byte) error {
 	return nil
 }
 
-func (sv *SubvolumeEntry) createSubvolume(db wdb.RODB,
+func (dv *DirvolumeEntry) createDirvolume(db wdb.RODB,
 	executor executors.Executor) error {
 
 	godbc.Require(db != nil)
 
-	svr, host, err := sv.createSubvolumeRequest(db)
+	dvr, host, err := dv.createDirvolumeRequest(db)
 	if err != nil {
 		return err
 	}
 
-	if _, err := executor.SubvolumeCreate(host, DirPoolVolumeName, svr); err != nil {
+	if _, err := executor.DirvolumeCreate(host, DirPoolVolumeName, dvr); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (sv *SubvolumeEntry) createSubvolumeRequest(db wdb.RODB) (*executors.SubvolumeRequest,
+func (dv *DirvolumeEntry) createDirvolumeRequest(db wdb.RODB) (*executors.DirvolumeRequest,
 	string, error) {
 
 	godbc.Require(db != nil)
 
-	svr := &executors.SubvolumeRequest{}
+	dvr := &executors.DirvolumeRequest{}
 	var sshhost string
 	err := db.View(func(tx *bolt.Tx) error {
 
-		cluster, err := NewClusterEntryFromId(tx, sv.Info.ClusterId)
+		cluster, err := NewClusterEntryFromId(tx, dv.Info.ClusterId)
 		if err != nil {
 			return err
 		}
@@ -144,23 +144,23 @@ func (sv *SubvolumeEntry) createSubvolumeRequest(db wdb.RODB) (*executors.Subvol
 	}
 
 	if sshhost == "" {
-		return nil, "", errors.New("failed to find host for creating subvolme for cluster " + sv.Info.ClusterId)
+		return nil, "", errors.New("failed to find host for creating subvolme for cluster " + dv.Info.ClusterId)
 	}
 
-	svr.Name = sv.Info.Name
-	svr.Size = sv.Info.Size
+	dvr.Name = dv.Info.Name
+	dvr.Size = dv.Info.Size
 
-	return svr, sshhost, nil
+	return dvr, sshhost, nil
 }
 
-func (sv *SubvolumeEntry) destroySubvolume(db wdb.RODB,
+func (dv *DirvolumeEntry) destroyDirvolume(db wdb.RODB,
 	executor executors.Executor) error {
 
 	godbc.Require(db != nil)
 
 	var sshhost string
 	err := db.View(func(tx *bolt.Tx) error {
-		cluster, err := NewClusterEntryFromId(tx, sv.Info.ClusterId)
+		cluster, err := NewClusterEntryFromId(tx, dv.Info.ClusterId)
 		if err != nil {
 			return err
 		}
@@ -180,30 +180,30 @@ func (sv *SubvolumeEntry) destroySubvolume(db wdb.RODB,
 	}
 
 	if sshhost == "" {
-		return errors.New("failed to find host for destroying subvolme for cluster " + sv.Info.ClusterId)
+		return errors.New("failed to find host for destroying subvolme for cluster " + dv.Info.ClusterId)
 	}
 
-	if err := executor.SubvolumeDestroy(sshhost, DirPoolVolumeName, sv.Info.Name); err != nil {
+	if err := executor.DirvolumeDestroy(sshhost, DirPoolVolumeName, dv.Info.Name); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (sv *SubvolumeEntry) teardown(db wdb.DB) error {
+func (dv *DirvolumeEntry) teardown(db wdb.DB) error {
 	return db.Update(func(tx *bolt.Tx) error {
-		return sv.Delete(tx)
+		return dv.Delete(tx)
 	})
 }
 
-func (sv *SubvolumeEntry) NewInfoResponse(tx *bolt.Tx) (*api.SubvolumeInfoResponse, error) {
+func (dv *DirvolumeEntry) NewInfoResponse(tx *bolt.Tx) (*api.DirvolumeInfoResponse, error) {
 	godbc.Require(tx != nil)
 
-	info := api.NewSubvolumeInfoResponse()
-	info.Size = sv.Info.Size
-	info.Name = sv.Info.Name
-	info.Id = sv.Info.Id
-	info.ClusterId = sv.Info.ClusterId
+	info := api.NewDirvolumeInfoResponse()
+	info.Size = dv.Info.Size
+	info.Name = dv.Info.Name
+	info.Id = dv.Info.Id
+	info.ClusterId = dv.Info.ClusterId
 
 	return info, nil
 }
