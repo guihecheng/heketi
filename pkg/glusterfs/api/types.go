@@ -540,29 +540,29 @@ func (v *VolumeInfoResponse) String() string {
 	return s
 }
 
-type SubvolumeCreateRequest struct {
+type DirvolumeCreateRequest struct {
 	// Size in GiB
 	Size      int    `json:"size"`
 	Name      string `json:"name"`
 	ClusterId string `json:"cluster"`
 }
 
-type SubvolumeInfo struct {
-	SubvolumeCreateRequest
+type DirvolumeInfo struct {
+	DirvolumeCreateRequest
 	Id string `json:"id"`
 }
 
-type SubvolumeInfoResponse struct {
-	SubvolumeInfo
+type DirvolumeInfoResponse struct {
+	DirvolumeInfo
 }
 
-type SubvolumeListResponse struct {
-	Subvolumes []string `json:"subvolumes"`
+type DirvolumeListResponse struct {
+	Dirvolumes []string `json:"dirvolumes"`
 }
 
-func NewSubvolumeInfoResponse() *SubvolumeInfoResponse {
+func NewDirvolumeInfoResponse() *DirvolumeInfoResponse {
 
-	info := &SubvolumeInfoResponse{}
+	info := &DirvolumeInfoResponse{}
 
 	return info
 }

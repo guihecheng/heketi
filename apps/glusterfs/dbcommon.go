@@ -29,7 +29,7 @@ type Db struct {
 	Nodes             map[string]NodeEntry             `json:"nodeentries"`
 	Devices           map[string]DeviceEntry           `json:"deviceentries"`
 	BlockVolumes      map[string]BlockVolumeEntry      `json:"blockvolumeentries"`
-	Subvolumes        map[string]SubvolumeEntry        `json:"subvolumeentries"`
+	Dirvolumes        map[string]DirvolumeEntry        `json:"dirvolumeentries"`
 	DbAttributes      map[string]DbAttributeEntry      `json:"dbattributeentries"`
 	PendingOperations map[string]PendingOperationEntry `json:"pendingoperations"`
 }
@@ -58,7 +58,7 @@ type DbCheckResponse struct {
 	Nodes                DbBucketCheckResponse `json:"nodes"`
 	Devices              DbBucketCheckResponse `json:"devices"`
 	BlockVolumes         DbBucketCheckResponse `json:"blockvolumes"`
-	Subvolumes           DbBucketCheckResponse `json:"subvolumes"`
+	Dirvolumes           DbBucketCheckResponse `json:"dirvolumes"`
 	DbAttributes         DbBucketCheckResponse `json:"dbattributes"`
 	PendingOperations    DbBucketCheckResponse `json:"pendingoperations"`
 	TotalInconsistencies int                   `json:"totalinconsistencies"`
@@ -106,9 +106,9 @@ func initializeBuckets(tx *bolt.Tx) error {
 		return err
 	}
 
-	_, err = tx.CreateBucketIfNotExists([]byte(BOLTDB_BUCKET_SUBVOLUME))
+	_, err = tx.CreateBucketIfNotExists([]byte(BOLTDB_BUCKET_DIRVOLUME))
 	if err != nil {
-		logger.LogError("Unable to create subvolume bucket in DB")
+		logger.LogError("Unable to create dirvolume bucket in DB")
 		return err
 	}
 
@@ -161,9 +161,9 @@ func UpgradeDB(tx *bolt.Tx) error {
 		return err
 	}
 
-	err = SubvolumeEntryUpgrade(tx)
+	err = DirvolumeEntryUpgrade(tx)
 	if err != nil {
-		logger.LogError("Failed to upgrade db for subvolume entries")
+		logger.LogError("Failed to upgrade db for dirvolume entries")
 		return err
 	}
 

@@ -46,10 +46,10 @@ type MockExecutor struct {
 	MockLVS                      func(host string) (*executors.LVSCommandOutput, error)
 	MockGetBrickMountStatus      func(host string) (*executors.BricksMountStatus, error)
 	MockListBlockVolumes         func(host string, blockhostingvolume string) ([]string, error)
-	MockSubvolumeCreate          func(host string, volume string, subvolume *executors.SubvolumeRequest) (*executors.Subvolume, error)
-	MockSubvolumeDestroy         func(host string, volume string, subvolume string) error
-	MockSubvolumeInfo            func(host string, volume string, subvolume string) (*executors.Subvolume, error)
-	MockSubvolumesInfo           func(host string, volume string) (*executors.SubvolInfo, error)
+	MockDirvolumeCreate          func(host string, volume string, dirvolume *executors.DirvolumeRequest) (*executors.Dirvolume, error)
+	MockDirvolumeDestroy         func(host string, volume string, dirvolume string) error
+	MockDirvolumeInfo            func(host string, volume string, dirvolume string) (*executors.Dirvolume, error)
+	MockDirvolumesInfo           func(host string, volume string) (*executors.SubvolInfo, error)
 
 	// default values
 	DeviceSizeGb func() uint64
@@ -267,21 +267,21 @@ func NewMockExecutor() (*MockExecutor, error) {
 		return 500
 	}
 
-	m.MockSubvolumeCreate = func(host string, volume string, subvolume *executors.SubvolumeRequest) (*executors.Subvolume, error) {
-		return &executors.Subvolume{}, nil
+	m.MockDirvolumeCreate = func(host string, volume string, dirvolume *executors.DirvolumeRequest) (*executors.Dirvolume, error) {
+		return &executors.Dirvolume{}, nil
 	}
 
-	m.MockSubvolumeDestroy = func(host string, volume string, subvolume string) error {
+	m.MockDirvolumeDestroy = func(host string, volume string, dirvolume string) error {
 		return nil
 	}
 
-	m.MockSubvolumeInfo = func(host string, volume string, subvolume string) (*executors.Subvolume, error) {
-		return &executors.Subvolume{}, nil
+	m.MockDirvolumeInfo = func(host string, volume string, dirvolume string) (*executors.Dirvolume, error) {
+		return &executors.Dirvolume{}, nil
 	}
 
-	m.MockSubvolumesInfo = func(host string, volume string) (*executors.SubvolInfo, error) {
-		subvol := executors.Subvolume{}
-		subvollist := make([]executors.Subvolume, 0)
+	m.MockDirvolumesInfo = func(host string, volume string) (*executors.SubvolInfo, error) {
+		subvol := executors.Dirvolume{}
+		subvollist := make([]executors.Dirvolume, 0)
 		subvollist = append(subvollist, subvol)
 		subvollist = append(subvollist, subvol)
 
@@ -414,18 +414,18 @@ func (m *MockExecutor) ListBlockVolumes(host string, blockhostingvolume string) 
 	return m.MockListBlockVolumes(host, blockhostingvolume)
 }
 
-func (m *MockExecutor) SubvolumeCreate(host string, volume string, subvolume *executors.SubvolumeRequest) (*executors.Subvolume, error) {
-	return m.MockSubvolumeCreate(host, volume, subvolume)
+func (m *MockExecutor) DirvolumeCreate(host string, volume string, dirvolume *executors.DirvolumeRequest) (*executors.Dirvolume, error) {
+	return m.MockDirvolumeCreate(host, volume, dirvolume)
 }
 
-func (m *MockExecutor) SubvolumeDestroy(host string, volume string, subvolume string) error {
-	return m.MockSubvolumeDestroy(host, volume, subvolume)
+func (m *MockExecutor) DirvolumeDestroy(host string, volume string, dirvolume string) error {
+	return m.MockDirvolumeDestroy(host, volume, dirvolume)
 }
 
-func (m *MockExecutor) SubvolumeInfo(host string, volume string, subvolume string) (*executors.Subvolume, error) {
-	return m.MockSubvolumeInfo(host, volume, subvolume)
+func (m *MockExecutor) DirvolumeInfo(host string, volume string, dirvolume string) (*executors.Dirvolume, error) {
+	return m.MockDirvolumeInfo(host, volume, dirvolume)
 }
 
-func (m *MockExecutor) SubvolumesInfo(host string, volume string) (*executors.SubvolInfo, error) {
-	return m.MockSubvolumesInfo(host, volume)
+func (m *MockExecutor) DirvolumesInfo(host string, volume string) (*executors.SubvolInfo, error) {
+	return m.MockDirvolumesInfo(host, volume)
 }

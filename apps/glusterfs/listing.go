@@ -51,14 +51,14 @@ func ListCompleteBlockVolumes(tx *bolt.Tx) ([]string, error) {
 	return removeKeysFromList(v, p), nil
 }
 
-// ListCompleteSubvolumes returns a list of subvolume ID strings for subvolumes
+// ListCompleteDirvolumes returns a list of dirvolume ID strings for dirvolumes
 // that are not pending.
-func ListCompleteSubvolumes(tx *bolt.Tx) ([]string, error) {
-	p, err := MapPendingSubvolumes(tx)
+func ListCompleteDirvolumes(tx *bolt.Tx) ([]string, error) {
+	p, err := MapPendingDirvolumes(tx)
 	if err != nil {
 		return []string{}, err
 	}
-	v, err := SubvolumeList(tx)
+	v, err := DirvolumeList(tx)
 	if err != nil {
 		return []string{}, err
 	}
@@ -142,14 +142,14 @@ func MapPendingDeviceRemoves(tx *bolt.Tx) (map[string]string, error) {
 	})
 }
 
-// MapPendingSubvolumes returns a map of subvolume-id to pending-op-id or
+// MapPendingDirvolumes returns a map of dirvolume-id to pending-op-id or
 // an error if the db cannot be read.
-func MapPendingSubvolumes(tx *bolt.Tx) (map[string]string, error) {
+func MapPendingDirvolumes(tx *bolt.Tx) (map[string]string, error) {
 	return mapPendingItems(tx, func(op *PendingOperationEntry, a PendingOperationAction) bool {
 		t := op.Type
 		c := a.Change
-		return ((t == OperationCreateSubvolume && c == OpAddSubvolume) ||
-			(t == OperationDeleteSubvolume && c == OpDeleteSubvolume))
+		return ((t == OperationCreateDirvolume && c == OpAddDirvolume) ||
+			(t == OperationDeleteDirvolume && c == OpDeleteDirvolume))
 	})
 }
 

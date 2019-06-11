@@ -10,8 +10,8 @@ import (
 	"github.com/heketi/heketi/pkg/utils"
 )
 
-func (c *Client) SubvolumeCreate(request *api.SubvolumeCreateRequest) (
-	*api.SubvolumeInfoResponse, error) {
+func (c *Client) DirvolumeCreate(request *api.DirvolumeCreateRequest) (
+	*api.DirvolumeInfoResponse, error) {
 
 	// Marshal request to JSON
 	buffer, err := json.Marshal(request)
@@ -21,7 +21,7 @@ func (c *Client) SubvolumeCreate(request *api.SubvolumeCreateRequest) (
 
 	// Create a request
 	req, err := http.NewRequest("POST",
-		c.host+"/subvolumes",
+		c.host+"/dirvolumes",
 		bytes.NewBuffer(buffer))
 	if err != nil {
 		return nil, err
@@ -54,20 +54,20 @@ func (c *Client) SubvolumeCreate(request *api.SubvolumeCreateRequest) (
 	}
 
 	// Read JSON response
-	var subvolume api.SubvolumeInfoResponse
-	err = utils.GetJsonFromResponse(r, &subvolume)
+	var dirvolume api.DirvolumeInfoResponse
+	err = utils.GetJsonFromResponse(r, &dirvolume)
 	if err != nil {
 		return nil, err
 	}
 
-	return &subvolume, nil
+	return &dirvolume, nil
 
 }
 
-func (c *Client) SubvolumeDelete(id string) error {
+func (c *Client) DirvolumeDelete(id string) error {
 
 	// Create a request
-	req, err := http.NewRequest("DELETE", c.host+"/subvolumes/"+id, nil)
+	req, err := http.NewRequest("DELETE", c.host+"/dirvolumes/"+id, nil)
 	if err != nil {
 		return err
 	}
@@ -100,10 +100,10 @@ func (c *Client) SubvolumeDelete(id string) error {
 	return nil
 }
 
-func (c *Client) SubvolumeInfo(id string) (*api.SubvolumeInfoResponse, error) {
+func (c *Client) DirvolumeInfo(id string) (*api.DirvolumeInfoResponse, error) {
 
 	// Create request
-	req, err := http.NewRequest("GET", c.host+"/subvolumes/"+id, nil)
+	req, err := http.NewRequest("GET", c.host+"/dirvolumes/"+id, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -125,19 +125,19 @@ func (c *Client) SubvolumeInfo(id string) (*api.SubvolumeInfoResponse, error) {
 	}
 
 	// Read JSON response
-	var subvolume api.SubvolumeInfoResponse
-	err = utils.GetJsonFromResponse(r, &subvolume)
+	var dirvolume api.DirvolumeInfoResponse
+	err = utils.GetJsonFromResponse(r, &dirvolume)
 	if err != nil {
 		return nil, err
 	}
 
-	return &subvolume, nil
+	return &dirvolume, nil
 }
 
-func (c *Client) SubvolumeList() (*api.SubvolumeListResponse, error) {
+func (c *Client) DirvolumeList() (*api.DirvolumeListResponse, error) {
 
 	// Create request
-	req, err := http.NewRequest("GET", c.host+"/subvolumes", nil)
+	req, err := http.NewRequest("GET", c.host+"/dirvolumes", nil)
 	if err != nil {
 		return nil, err
 	}
@@ -159,11 +159,11 @@ func (c *Client) SubvolumeList() (*api.SubvolumeListResponse, error) {
 	}
 
 	// Read JSON response
-	var subvolumes api.SubvolumeListResponse
-	err = utils.GetJsonFromResponse(r, &subvolumes)
+	var dirvolumes api.DirvolumeListResponse
+	err = utils.GetJsonFromResponse(r, &dirvolumes)
 	if err != nil {
 		return nil, err
 	}
 
-	return &subvolumes, nil
+	return &dirvolumes, nil
 }
