@@ -33,10 +33,9 @@ func (a *App) DirvolumeCreate(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Check that the cluster requested is available
-	var cluster *ClusterEntry
 	err = a.db.View(func(tx *bolt.Tx) error {
 		var err error // needed otherwise 'cluster' will be nil after View()
-		cluster, err = NewClusterEntryFromId(tx, msg.ClusterId)
+		_, err = NewClusterEntryFromId(tx, msg.ClusterId)
 		if err == ErrNotFound {
 			http.Error(w, err.Error(), http.StatusNotFound)
 			return err
