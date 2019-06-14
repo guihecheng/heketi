@@ -17,14 +17,13 @@ func (a *App) DirvolumeCreate(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "request unable to be parsed", 422)
 		return
 	}
-	/*
-		err = msg.Validate()
-		if err != nil {
-			http.Error(w, "validation failed: "+err.Error(), http.StatusBadRequest)
-			logger.LogError("validation failed: " + err.Error())
-			return
-		}
-	*/
+
+	err = msg.Validate()
+	if err != nil {
+		http.Error(w, "validation failed: "+err.Error(), http.StatusBadRequest)
+		logger.LogError("validation failed: " + err.Error())
+		return
+	}
 
 	if msg.Size < 1 {
 		http.Error(w, "Invalid dirvolume size", http.StatusBadRequest)

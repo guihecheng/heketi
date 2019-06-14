@@ -37,6 +37,8 @@ var (
 	blockVolNameRe = regexp.MustCompile("^[a-zA-Z0-9_-]+$")
 
 	tagNameRe = regexp.MustCompile("^[a-zA-Z0-9_.-]+$")
+
+	dirvolumeNameRe = regexp.MustCompile("^[a-zA-Z0-9_-]+$")
 )
 
 // ValidateUUID is written this way because heketi UUID does not
@@ -545,6 +547,14 @@ type DirvolumeCreateRequest struct {
 	Size      int    `json:"size"`
 	Name      string `json:"name"`
 	ClusterId string `json:"cluster"`
+}
+
+func (dvolCreateRequest DirvolumeCreateRequest) Validate() error {
+	return validation.ValidateStruct(&dvolCreateRequest,
+		validation.Field(&dvolCreateRequest.Size, validation.Required, validation.Min(1)),
+		validation.Field(&dvolCreateRequest.Name, validation.Match(dirvolumeNameRe)),
+		validation.Field(&dvolCreateRequest.ClusterId, validation.By(ValidateUUID)),
+	)
 }
 
 type DirvolumeInfo struct {

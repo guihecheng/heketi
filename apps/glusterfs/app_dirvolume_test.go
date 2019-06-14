@@ -94,6 +94,31 @@ func TestDirvolumeCreate(t *testing.T) {
 	tests.Assert(t, info.Name == "dvol_"+info.Id)
 }
 
+func TestDirvolumeCreateBadJson(t *testing.T) {
+	tmpfile := tests.Tempfile()
+	defer os.Remove(tmpfile)
+
+	// Create the app
+	app := NewTestApp(tmpfile)
+	defer app.Close()
+	router := mux.NewRouter()
+	app.SetRoutes(router)
+
+	// Setup the server
+	ts := httptest.NewServer(router)
+	defer ts.Close()
+
+	// VolumeCreate JSON Request
+	request := []byte(`{
+        asdfsdf
+    }`)
+
+	// Send request
+	r, err := http.Post(ts.URL+"/dirvolumes", "application/json", bytes.NewBuffer(request))
+	tests.Assert(t, err == nil)
+	tests.Assert(t, r.StatusCode == 422)
+}
+
 func TestDirvolumeCreateInvalidSize(t *testing.T) {
 	tmpfile := tests.Tempfile()
 	defer os.Remove(tmpfile)
@@ -147,7 +172,7 @@ func TestDirvolumeCreateInvalidSize(t *testing.T) {
 	body, err := ioutil.ReadAll(io.LimitReader(r.Body, r.ContentLength))
 	tests.Assert(t, err == nil)
 	r.Body.Close()
-	tests.Assert(t, strings.Contains(string(body), "Invalid dirvolume size"), string(body))
+	tests.Assert(t, strings.Contains(string(body), "size: cannot be blank"), string(body))
 }
 
 func TestDirvolumeCreateBadClusters(t *testing.T) {
@@ -182,11 +207,11 @@ func TestDirvolumeCreateBadClusters(t *testing.T) {
 	// Send request
 	r, err := http.Post(ts.URL+"/dirvolumes", "application/json", bytes.NewBuffer(request))
 	tests.Assert(t, err == nil)
-	tests.Assert(t, r.StatusCode == http.StatusNotFound)
+	tests.Assert(t, r.StatusCode == http.StatusBadRequest)
 	body, err := ioutil.ReadAll(io.LimitReader(r.Body, r.ContentLength))
 	tests.Assert(t, err == nil)
 	r.Body.Close()
-	tests.Assert(t, strings.Contains(string(body), "Id not found"))
+	tests.Assert(t, strings.Contains(string(body), "cluster: bad is not a valid UUID"))
 }
 
 func TestDirvolumeInfoIdNotFound(t *testing.T) {
