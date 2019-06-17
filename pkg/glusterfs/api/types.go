@@ -230,6 +230,7 @@ type Cluster struct {
 	Volumes []VolumeInfoResponse `json:"volumes"`
 	//currently BlockVolumes will be used only for metrics
 	BlockVolumes []BlockVolumeInfoResponse `json:"blockvolumes,omitempty"`
+	Dirvolumes   []DirvolumeInfoResponse   `json:"dirvolumes"`
 	Nodes        []NodeInfoResponse        `json:"nodes"`
 	Id           string                    `json:"id"`
 	ClusterFlags
@@ -253,6 +254,7 @@ type ClusterInfoResponse struct {
 	Volumes sort.StringSlice `json:"volumes"`
 	ClusterFlags
 	BlockVolumes sort.StringSlice `json:"blockvolumes"`
+	Dirvolumes   sort.StringSlice `json:"dirvolumes"`
 }
 
 type ClusterListResponse struct {

@@ -153,6 +153,59 @@ func (dv *DirvolumeEntry) createDirvolumeRequest(db wdb.RODB) (*executors.Dirvol
 	return dvr, sshhost, nil
 }
 
+func (dv *DirvolumeEntry) checkCreateDirvolume(db wdb.DB) error {
+	err := db.View(func(tx *bolt.Tx) error {
+		cluster, err := NewClusterEntryFromId(tx, dv.Info.ClusterId)
+		if err != nil {
+			return err
+		}
+
+		var found bool
+		found, err = dirvolumeNameExistsInCluster(tx, cluster, dv.Info.Name)
+		if err != nil {
+			return err
+		}
+		if found {
+			err = errors.New("Name " + dv.Info.Name + " already in use in cluster " + dv.Info.ClusterId)
+		}
+		return err
+	})
+
+	if err != nil {
+		return err
+	}
+	return dv.saveCreateDirvolume(db)
+}
+
+func (dv *DirvolumeEntry) saveCreateDirvolume(db wdb.DB) error {
+	err := db.Update(func(tx *bolt.Tx) error {
+		// Save cluster
+		cluster, err := NewClusterEntryFromId(tx, dv.Info.ClusterId)
+		if err != nil {
+			return err
+		}
+		cluster.DirvolumeAdd(dv.Info.Id)
+		return cluster.Save(tx)
+	})
+	return err
+}
+
+func dirvolumeNameExistsInCluster(tx *bolt.Tx, cluster *ClusterEntry,
+	name string) (found bool, e error) {
+	for _, dvolId := range cluster.Info.Dirvolumes {
+		dv, err := NewDirvolumeEntryFromId(tx, dvolId)
+		if err != nil {
+			return false, err
+		}
+		if name == dv.Info.Name {
+			found = true
+			return
+		}
+	}
+
+	return
+}
+
 func (dv *DirvolumeEntry) destroyDirvolume(db wdb.RODB,
 	executor executors.Executor) error {
 
@@ -192,6 +245,17 @@ func (dv *DirvolumeEntry) destroyDirvolume(db wdb.RODB,
 
 func (dv *DirvolumeEntry) teardown(db wdb.DB) error {
 	return db.Update(func(tx *bolt.Tx) error {
+		if dv.Info.ClusterId != "" {
+			cluster, err := NewClusterEntryFromId(tx, dv.Info.ClusterId)
+			if err != nil {
+				return err
+			}
+			cluster.DirvolumeDelete(dv.Info.Id)
+			err = cluster.Save(tx)
+			if err != nil {
+				return err
+			}
+		}
 		return dv.Delete(tx)
 	})
 }

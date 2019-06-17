@@ -65,11 +65,17 @@ func (dvc *DirvolumeCreateOperation) MaxRetries() int {
 
 func (dvc *DirvolumeCreateOperation) Build() error {
 	return dvc.db.Update(func(tx *bolt.Tx) error {
-		dvc.op.RecordAddDirvolume(dvc.dvol)
-		if e := dvc.dvol.Save(tx); e != nil {
+		txdb := wdb.WrapTx(tx)
+		e := dvc.dvol.checkCreateDirvolume(txdb)
+		if e != nil {
 			return e
 		}
-		if e := dvc.op.Save(tx); e != nil {
+
+		dvc.op.RecordAddDirvolume(dvc.dvol)
+		if e = dvc.dvol.Save(tx); e != nil {
+			return e
+		}
+		if e = dvc.op.Save(tx); e != nil {
 			return e
 		}
 		return nil
