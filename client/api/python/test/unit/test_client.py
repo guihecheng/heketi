@@ -575,6 +575,109 @@ class test_heketi(unittest.TestCase):
         cluster_delete = c.cluster_delete(cluster['id'])
         self.assertTrue(cluster_delete)
 
+    def test_dirvolume(self):
+        # Create cluster
+        c = HeketiClient(TEST_SERVER, "admin", TEST_ADMIN_KEY,
+                         poll_delay=TEST_POLL_DELAY)
+        self.assertEqual(True, c != '')
+
+        cluster_req = {}
+        cluster_req['block'] = True
+        cluster_req['file'] = True
+        cluster = c.cluster_create(cluster_req)
+        self.assertNotEqual(cluster['id'], '')
+
+        # Create node request packet
+        print ("Creating Cluster")
+        for i in range(3):
+            node_req = {}
+            node_req['cluster'] = cluster['id']
+            node_req['hostnames'] = {
+                "manage": ["node%s-manage.gluster.lab.com" % (i)],
+                "storage": ["node%s-storage.gluster.lab.com" % (i)]}
+            node_req['zone'] = i + 1
+
+            # Create node
+            node = c.node_add(node_req)
+            self.assertNotEqual(node['id'], '')
+
+            # Create and add devices
+            for i in range(1, 4):
+                device_req = {}
+                device_req['name'] = "/dev/sda%s" % (i)
+                device_req['node'] = node['id']
+
+                device = c.device_add(device_req)
+                self.assertTrue(device)
+
+        # Get list of dirvolumes
+        list = c.dirvolume_list()
+        self.assertEqual(len(list['dirvolumes']), 0)
+
+        # Create a dirvolume
+        print ("Creating a dirvolume")
+        dirvolume_req = {}
+        dirvolume_req['size'] = 10
+        dirvolume_req['cluster'] = cluster['id']
+        dirvolume = c.dirvolume_create(dirvolume_req)
+        self.assertNotEqual(dirvolume['id'], "")
+        self.assertEqual(dirvolume['size'], dirvolume_req['size'])
+
+        # Get list of dirvolumes
+        list = c.dirvolume_list()
+        self.assertEqual(len(list['dirvolumes']), 1)
+        self.assertEqual(list['dirvolumes'][0], dirvolume['id'])
+
+        # Get info on incorrect id
+        with self.assertRaises(requests.exceptions.HTTPError):
+            c.dirvolume_info("badid")
+
+        # Get info
+        info = c.dirvolume_info(dirvolume['id'])
+        self.assertEqual(info, dirvolume)
+
+        # Expand dirvolume with a bad id
+        dirvolume_ex_params = {}
+        dirvolume_ex_params['expand_size'] = 10
+
+        with self.assertRaises(requests.exceptions.HTTPError):
+            c.dirvolume_expand("badid", dirvolume_ex_params)
+
+        # Expand dirvolume
+        print ("Expanding dirvolume")
+        dirvolumeInfo = c.dirvolume_expand(dirvolume['id'], dirvolume_ex_params)
+        self.assertEqual(dirvolumeInfo['size'], 20)
+
+        # Delete bad id
+        with self.assertRaises(requests.exceptions.HTTPError):
+            c.dirvolume_delete("badid")
+
+        # Delete dirvolume
+        print ("Deleting dirvolume")
+        dirvolume_delete = c.dirvolume_delete(dirvolume['id'])
+        self.assertTrue(dirvolume_delete)
+
+        print ("Deleting Cluster")
+        clusterInfo = c.cluster_info(cluster['id'])
+        for node_id in clusterInfo['nodes']:
+            # Get node information
+            nodeInfo = c.node_info(node_id)
+
+            # Delete all devices
+            for device in nodeInfo['devices']:
+                devid = device['id']
+                self.assertTrue(c.device_state(devid, {'state': 'offline'}))
+                self.assertTrue(c.device_state(devid, {'state': 'failed'}))
+                device_delete = c.device_delete(devid)
+                self.assertTrue(device_delete)
+
+            # Delete node
+            node_delete = c.node_delete(node_id)
+            self.assertTrue(node_delete)
+
+        # Delete cluster
+        cluster_delete = c.cluster_delete(cluster['id'])
+        self.assertTrue(cluster_delete)
 
 if __name__ == '__main__':
     unittest.main()
