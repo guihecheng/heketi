@@ -326,11 +326,8 @@ func (dve *DirvolumeExpandOperation) ResourceUrl() string {
 
 func (dve *DirvolumeExpandOperation) Build() error {
 	return dve.db.Update(func(tx *bolt.Tx) error {
+		dve.dvol.Info.Size += dve.ExpandSize
 		dve.op.RecordExpandDirvolume(dve.dvol, dve.ExpandSize)
-		if e := dve.dvol.Save(tx); e != nil {
-			return e
-		}
-
 		if e := dve.op.Save(tx); e != nil {
 			return e
 		}
@@ -349,13 +346,6 @@ func (dve *DirvolumeExpandOperation) Exec(executor executors.Executor) error {
 
 func (dve *DirvolumeExpandOperation) Finalize() error {
 	return dve.db.Update(func(tx *bolt.Tx) error {
-		sizeDelta, err := expandSizeFromOp(dve.op)
-		if err != nil {
-			logger.LogError("Failed to get expansion size from op: %v", err)
-			return err
-		}
-
-		dve.dvol.Info.Size += sizeDelta
 		dve.op.FinalizeDirvolume(dve.dvol)
 		if e := dve.dvol.Save(tx); e != nil {
 			return e
