@@ -328,3 +328,49 @@ func TestDirvolumeCreateConcurrent(t *testing.T) {
 	err = sg.Result()
 	tests.Assert(t, err == nil, "expected err == nil, got:", err)
 }
+
+func TestDirvolumeEntryExpand(t *testing.T) {
+	tmpfile := tests.Tempfile()
+	defer os.Remove(tmpfile)
+
+	// Create the app
+	app := NewTestApp(tmpfile)
+	defer app.Close()
+
+	// Create a cluster
+	err := setupSampleDbWithTopology(app,
+		1,      // clusters
+		3,      // nodes_per_cluster
+		1,      // devices_per_node,
+		500*GB, // disksize)
+	)
+	tests.Assert(t, err == nil)
+
+	var clusterId string
+	err = app.db.View(func(tx *bolt.Tx) error {
+		clusters, err := ClusterList(tx)
+		if err != nil {
+			return err
+		}
+
+		tests.Assert(t, len(clusters) == 1)
+		cluster, err := NewClusterEntryFromId(tx, clusters[0])
+		tests.Assert(t, err == nil)
+
+		clusterId = cluster.Info.Id
+
+		return nil
+	})
+	tests.Assert(t, err == nil)
+	tests.Assert(t, clusterId != "")
+
+	// Create a dirvolume entry
+	dv := createSampleDirvolumeEntry(1024, clusterId)
+
+	err = dv.createDirvolume(app.db, app.executor)
+	tests.Assert(t, err == nil)
+
+	// Destroy the dirvolume
+	err = dv.expandDirvolume(app.db, app.executor)
+	tests.Assert(t, err == nil)
+}

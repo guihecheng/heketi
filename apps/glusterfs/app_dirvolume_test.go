@@ -525,3 +525,116 @@ func TestDirvolumeDeleteIdNotFound(t *testing.T) {
 	tests.Assert(t, err == nil)
 	tests.Assert(t, r.StatusCode == http.StatusNotFound)
 }
+
+func TestDirvolumeExpand(t *testing.T) {
+	tmpfile := tests.Tempfile()
+	defer os.Remove(tmpfile)
+
+	// Create the app
+	app := NewTestApp(tmpfile)
+	defer app.Close()
+	router := mux.NewRouter()
+	app.SetRoutes(router)
+
+	// Setup the server
+	ts := httptest.NewServer(router)
+	defer ts.Close()
+
+	// Setup database
+	err := setupSampleDbWithTopology(app,
+		1,    // clusters
+		3,    // nodes_per_cluster
+		1,    // devices_per_node,
+		6*TB, // disksize)
+	)
+	tests.Assert(t, err == nil)
+
+	var clusterId string
+	err = app.db.View(func(tx *bolt.Tx) error {
+		clusters, err := ClusterList(tx)
+		if err != nil {
+			return err
+		}
+
+		tests.Assert(t, len(clusters) == 1)
+		cluster, err := NewClusterEntryFromId(tx, clusters[0])
+		tests.Assert(t, err == nil)
+
+		clusterId = cluster.Info.Id
+
+		return nil
+	})
+	tests.Assert(t, err == nil)
+	tests.Assert(t, clusterId != "")
+
+	// Create a dirvolume
+	var dv *DirvolumeEntry
+	err = app.db.Update(func(tx *bolt.Tx) error {
+		dv = createSampleDirvolumeEntry(100, clusterId)
+		err := dv.Save(tx)
+		if err != nil {
+			return err
+		}
+		return nil
+
+	})
+	tests.Assert(t, err == nil)
+	tests.Assert(t, dv != nil)
+
+	// JSON Request
+	request := []byte(`{
+        "expand_size" : 1000
+    }`)
+
+	// Send request
+	r, err := http.Post(ts.URL+"/dirvolumes/"+dv.Info.Id+"/expand",
+		"application/json",
+		bytes.NewBuffer(request))
+	tests.Assert(t, err == nil)
+	tests.Assert(t, r.StatusCode == http.StatusAccepted)
+	location, err := r.Location()
+	tests.Assert(t, err == nil)
+
+	// Query queue until finished
+	var info api.DirvolumeInfoResponse
+	for {
+		r, err = http.Get(location.String())
+		tests.Assert(t, err == nil)
+		tests.Assert(t, r.StatusCode == http.StatusOK)
+		if r.Header.Get("X-Pending") == "true" {
+			time.Sleep(time.Millisecond * 10)
+			continue
+		} else {
+			err = utils.GetJsonFromResponse(r, &info)
+			tests.Assert(t, err == nil)
+			break
+		}
+	}
+
+	tests.Assert(t, info.Size == 100+1000, info.Size)
+}
+
+func TestDirvolumeExpandBadJson(t *testing.T) {
+	tmpfile := tests.Tempfile()
+	defer os.Remove(tmpfile)
+
+	// Create the app
+	app := NewTestApp(tmpfile)
+	defer app.Close()
+	router := mux.NewRouter()
+	app.SetRoutes(router)
+
+	// Setup the server
+	ts := httptest.NewServer(router)
+	defer ts.Close()
+
+	// VolumeExpand JSON Request
+	request := []byte(`{
+        asdfsdf  0
+    }`)
+
+	// Send request
+	r, err := http.Post(ts.URL+"/dirvolumes", "application/json", bytes.NewBuffer(request))
+	tests.Assert(t, err == nil)
+	tests.Assert(t, r.StatusCode == 422)
+}

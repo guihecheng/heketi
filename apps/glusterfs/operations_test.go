@@ -538,8 +538,8 @@ func TestExpandSizeFromOpErrorHandling(t *testing.T) {
 	// this op lacks the expand metadata, should return error
 	_, e := expandSizeFromOp(op)
 	tests.Assert(t, e != nil, "expected e != nil, got:", e)
-	tests.Assert(t, strings.Contains(e.Error(), "no OpExpandVolume action"),
-		`expected strings.Contains(e.Error(), "no OpExpandVolume action"), got:`,
+	tests.Assert(t, strings.Contains(e.Error(), "no OpExpandVolume/OpExpandDirvolume action"),
+		`expected strings.Contains(e.Error(), "no OpExpandVolume/OpExpandDirvolume action"), got:`,
 		e)
 }
 
