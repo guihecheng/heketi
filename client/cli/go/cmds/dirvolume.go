@@ -23,6 +23,7 @@ func init() {
 	dirvolumeCommand.AddCommand(dirvolumeDeleteCommand)
 	dirvolumeCommand.AddCommand(dirvolumeInfoCommand)
 	dirvolumeCommand.AddCommand(dirvolumeListCommand)
+	dirvolumeCommand.AddCommand(dirvolumeExpandCommand)
 
 	dirvolumeCreateCommand.Flags().IntVar(&dv_size, "size", 0,
 		"\n\tSize of dirvolume in GiB")
@@ -31,8 +32,14 @@ func init() {
 	dirvolumeCreateCommand.Flags().StringVar(&dv_name, "name", "",
 		"\n\tOptional: Name of dirvolume. Only set if really necessary")
 
+	dirvolumeExpandCommand.Flags().IntVar(&expandSize, "expand-size", 0,
+		"\n\tAmount in GiB to add to the dirvolume")
+	dirvolumeExpandCommand.Flags().StringVar(&id, "dirvolume", "",
+		"\n\tId of dirvolume to expand")
+
 	dirvolumeCreateCommand.SilenceUsage = true
 	dirvolumeDeleteCommand.SilenceUsage = true
+	dirvolumeExpandCommand.SilenceUsage = true
 	dirvolumeInfoCommand.SilenceUsage = true
 	dirvolumeListCommand.SilenceUsage = true
 }
@@ -221,4 +228,50 @@ func printDirvolumeInfo(dirvolume *api.DirvolumeInfoResponse) {
 	if err != nil {
 		panic(err)
 	}
+}
+
+var dirvolumeExpandCommand = &cobra.Command{
+	Use:   "expand",
+	Short: "Expand a dirvolume",
+	Long:  "Expand a dirvolume",
+	Example: `  * Add 10GiB to a dirvolume
+    $ heketi-cli dirvolume expand --dirvolume=60d46d518074b13a04ce1022c8c7193c --expand-size=10
+`,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		// Check volume size
+		if expandSize == 0 {
+			return errors.New("Missing dirvolume amount to expand")
+		}
+
+		if id == "" {
+			return errors.New("Missing dirvolume id")
+		}
+
+		// Create request
+		req := &api.DirvolumeExpandRequest{}
+		req.Size = expandSize
+
+		// Create client
+		heketi, err := newHeketiClient()
+		if err != nil {
+			return err
+		}
+
+		// Expand dirvolume
+		dirvolume, err := heketi.DirvolumeExpand(id, req)
+		if err != nil {
+			return err
+		}
+
+		if options.Json {
+			data, err := json.Marshal(dirvolume)
+			if err != nil {
+				return err
+			}
+			fmt.Fprintf(stdout, string(data))
+		} else {
+			printDirvolumeInfo(dirvolume)
+		}
+		return nil
+	},
 }
