@@ -384,3 +384,14 @@ func (es *ExecutorStack) DirvolumesInfo(host string, volume string) (*executors.
 	}
 	return nil, NotSupportedError
 }
+
+func (es *ExecutorStack) DirvolumeExpand(host string, volume string,
+	dirvolume *executors.DirvolumeRequest) (*executors.Dirvolume, error) {
+	for _, e := range es.executors {
+		v, err := e.DirvolumeExpand(host, volume, dirvolume)
+		if err != NotSupportedError {
+			return v, err
+		}
+	}
+	return nil, NotSupportedError
+}

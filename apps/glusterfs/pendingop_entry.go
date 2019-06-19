@@ -305,6 +305,11 @@ func (p *PendingOperationEntry) RecordDeleteDirvolume(dv *DirvolumeEntry) {
 	dv.Pending.Id = p.Id
 }
 
+func (p *PendingOperationEntry) RecordExpandDirvolume(dv *DirvolumeEntry, sizeGB int) {
+	p.recordSizeChange(OpExpandDirvolume, dv.Info.Id, sizeGB)
+	p.Type = OperationExpandDirvolume
+}
+
 func (p *PendingOperationEntry) FinalizeDirvolume(dv *DirvolumeEntry) {
 	dv.Pending.Id = ""
 	return

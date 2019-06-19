@@ -271,3 +271,19 @@ func (dv *DirvolumeEntry) NewInfoResponse(tx *bolt.Tx) (*api.DirvolumeInfoRespon
 
 	return info, nil
 }
+
+func (dv *DirvolumeEntry) expandDirvolume(db wdb.RODB,
+	executor executors.Executor) error {
+
+	godbc.Require(db != nil)
+
+	dvr, host, err := dv.createDirvolumeRequest(db)
+	if err != nil {
+		return err
+	}
+
+	if _, err := executor.DirvolumeExpand(host, DirPoolVolumeName, dvr); err != nil {
+		return err
+	}
+	return nil
+}

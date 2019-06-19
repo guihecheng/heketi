@@ -647,6 +647,11 @@ func (a *App) SetRoutes(router *mux.Router) error {
 			Method:      "GET",
 			Pattern:     "/dirvolumes",
 			HandlerFunc: a.DirvolumeList},
+		rest.Route{
+			Name:        "DirvolumeExpand",
+			Method:      "POST",
+			Pattern:     "/dirvolumes/{id:[A-Fa-f0-9]+}/expand",
+			HandlerFunc: a.DirvolumeExpand},
 
 		// Backup
 		rest.Route{

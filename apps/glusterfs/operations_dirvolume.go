@@ -273,3 +273,111 @@ func expungeDirvolumeWithOp(
 		return op.Delete(tx)
 	})
 }
+
+type DirvolumeExpandOperation struct {
+	OperationManager
+	noRetriesOperation
+	dvol       *DirvolumeEntry
+	ExpandSize int
+}
+
+func NewDirvolumeExpandOperation(
+	dvol *DirvolumeEntry, db wdb.DB, sizeGB int) *DirvolumeExpandOperation {
+
+	return &DirvolumeExpandOperation{
+		OperationManager: OperationManager{
+			db: db,
+			op: NewPendingOperationEntry(NEW_ID),
+		},
+		dvol:       dvol,
+		ExpandSize: sizeGB,
+	}
+}
+
+func loadDirvolumeExpandOperation(
+	db wdb.DB, p *PendingOperationEntry) (*DirvolumeExpandOperation, error) {
+
+	dvols, err := dirvolumesFromOp(db, p)
+	if err != nil {
+		return nil, err
+	}
+	if len(dvols) != 1 {
+		return nil, fmt.Errorf(
+			"Incorrect number of dirvolumes (%v) for expand operation: %v",
+			len(dvols), p.Id)
+	}
+
+	return &DirvolumeExpandOperation{
+		OperationManager: OperationManager{
+			db: db,
+			op: p,
+		},
+		dvol: dvols[0],
+	}, nil
+}
+
+func (dve *DirvolumeExpandOperation) Label() string {
+	return "Expand Dirvolume"
+}
+
+func (dve *DirvolumeExpandOperation) ResourceUrl() string {
+	return fmt.Sprintf("/dirvolumes/%v", dve.dvol.Info.Id)
+}
+
+func (dve *DirvolumeExpandOperation) Build() error {
+	return dve.db.Update(func(tx *bolt.Tx) error {
+		dve.op.RecordExpandDirvolume(dve.dvol, dve.ExpandSize)
+		if e := dve.dvol.Save(tx); e != nil {
+			return e
+		}
+
+		if e := dve.op.Save(tx); e != nil {
+			return e
+		}
+		return nil
+	})
+}
+
+func (dve *DirvolumeExpandOperation) Exec(executor executors.Executor) error {
+	err := dve.dvol.expandDirvolume(dve.db, executor)
+	if err != nil {
+		logger.LogError("Error executing expand dirvolume: %v", err)
+		return OperationRetryError{err}
+	}
+	return nil
+}
+
+func (dve *DirvolumeExpandOperation) Finalize() error {
+	return dve.db.Update(func(tx *bolt.Tx) error {
+		sizeDelta, err := expandSizeFromOp(dve.op)
+		if err != nil {
+			logger.LogError("Failed to get expansion size from op: %v", err)
+			return err
+		}
+
+		dve.dvol.Info.Size += sizeDelta
+		dve.op.FinalizeDirvolume(dve.dvol)
+		if e := dve.dvol.Save(tx); e != nil {
+			return e
+		}
+
+		dve.op.Delete(tx)
+		return nil
+	})
+}
+
+func (dve *DirvolumeExpandOperation) Rollback(executor executors.Executor) error {
+	return rollbackViaClean(dve, executor)
+}
+
+func (dve *DirvolumeExpandOperation) Clean(executor executors.Executor) error {
+	logger.Info("Starting Clean for %v op:%v", dve.Label(), dve.op.Id)
+	return nil
+}
+
+func (dve *DirvolumeExpandOperation) CleanDone() error {
+	logger.Info("Clean is done for %v op:%v", dve.Label(), dve.op.Id)
+	return dve.db.Update(func(tx *bolt.Tx) error {
+		return dve.op.Delete(tx)
+	})
+}

@@ -50,6 +50,7 @@ type MockExecutor struct {
 	MockDirvolumeDestroy         func(host string, volume string, dirvolume string) error
 	MockDirvolumeInfo            func(host string, volume string, dirvolume string) (*executors.Dirvolume, error)
 	MockDirvolumesInfo           func(host string, volume string) (*executors.SubvolInfo, error)
+	MockDirvolumeExpand          func(host string, volume string, dirvolume *executors.DirvolumeRequest) (*executors.Dirvolume, error)
 
 	// default values
 	DeviceSizeGb func() uint64
@@ -291,6 +292,10 @@ func NewMockExecutor() (*MockExecutor, error) {
 		return subvolinfo, nil
 	}
 
+	m.MockDirvolumeExpand = func(host string, volume string, dirvolume *executors.DirvolumeRequest) (*executors.Dirvolume, error) {
+		return &executors.Dirvolume{}, nil
+	}
+
 	return m, nil
 }
 
@@ -428,4 +433,8 @@ func (m *MockExecutor) DirvolumeInfo(host string, volume string, dirvolume strin
 
 func (m *MockExecutor) DirvolumesInfo(host string, volume string) (*executors.SubvolInfo, error) {
 	return m.MockDirvolumesInfo(host, volume)
+}
+
+func (m *MockExecutor) DirvolumeExpand(host string, volume string, dirvolume *executors.DirvolumeRequest) (*executors.Dirvolume, error) {
+	return m.MockDirvolumeExpand(host, volume, dirvolume)
 }

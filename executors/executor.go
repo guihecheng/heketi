@@ -46,6 +46,7 @@ type Executor interface {
 	DirvolumeDestroy(host string, volume string, dirvolume string) error
 	DirvolumeInfo(host string, volume string, dirvolume string) (*Dirvolume, error)
 	DirvolumesInfo(host string, volume string) (*SubvolInfo, error)
+	DirvolumeExpand(host string, volume string, dirvolume *DirvolumeRequest) (*Dirvolume, error)
 }
 
 // Enumerate durability types

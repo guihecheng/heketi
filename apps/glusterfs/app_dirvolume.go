@@ -151,3 +151,52 @@ func (a *App) DirvolumeList(w http.ResponseWriter, r *http.Request) {
 		panic(err)
 	}
 }
+
+func (a *App) DirvolumeExpand(w http.ResponseWriter, r *http.Request) {
+	var msg api.DirvolumeExpandRequest
+	err := utils.GetJsonFromRequest(r, &msg)
+	if err != nil {
+		http.Error(w, "request unable to be parsed", 422)
+		return
+	}
+
+	err = msg.Validate()
+	if err != nil {
+		http.Error(w, "validation failed: "+err.Error(), http.StatusBadRequest)
+		logger.LogError("validation failed: " + err.Error())
+		return
+	}
+
+	if msg.Size < 1 {
+		http.Error(w, "Invalid dirvolume size", http.StatusBadRequest)
+		logger.LogError("Invalid dirvolume size")
+		return
+	}
+
+	vars := mux.Vars(r)
+	id := vars["id"]
+
+	var dvol *DirvolumeEntry
+	err = a.db.View(func(tx *bolt.Tx) error {
+		var err error
+		dvol, err = NewDirvolumeEntryFromId(tx, id)
+		if err == ErrNotFound {
+			http.Error(w, err.Error(), http.StatusNotFound)
+			return err
+		} else if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return err
+		}
+
+		return nil
+	})
+	if err != nil {
+		return
+	}
+
+	dve := NewDirvolumeExpandOperation(dvol, a.db, msg.Size)
+	if err := AsyncHttpOperation(a, w, r, dve); err != nil {
+		OperationHttpErrorf(w, err, "Failed to set up dirvolume expand: %v", err)
+		return
+	}
+}

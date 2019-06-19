@@ -141,3 +141,33 @@ func (s *CmdExecutor) DirvolumesInfo(host string, volume string) (*executors.Sub
 	}
 	return &subvolInfo.SubvolInfo, nil
 }
+
+func (s *CmdExecutor) DirvolumeExpand(host string, volume string,
+	dirvolume *executors.DirvolumeRequest) (*executors.Dirvolume, error) {
+
+	godbc.Require(host != "")
+	godbc.Require(volume != "")
+	godbc.Require(dirvolume != nil)
+
+	mountPath := paths.VolumeMountPoint(volume)
+
+	cmds := []string{
+
+		fmt.Sprintf("mkdir -p %v", mountPath),
+
+		fmt.Sprintf("mount -t glusterfs %v:/%v %v", host, volume, mountPath),
+
+		fmt.Sprintf("%v volume quota %v limit-usage /%v %vGB",
+			s.glusterCommand(), volume, dirvolume.Name, dirvolume.Size),
+
+		fmt.Sprintf("umount %v", mountPath),
+	}
+
+	err := rex.AnyError(s.RemoteExecutor.ExecCommands(host, cmds,
+		s.GlusterCliExecTimeout()))
+	if err != nil {
+		return nil, err
+	}
+
+	return &executors.Dirvolume{}, nil
+}

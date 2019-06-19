@@ -587,6 +587,16 @@ func NewBlockVolumeInfoResponse() *BlockVolumeInfoResponse {
 	return info
 }
 
+type DirvolumeExpandRequest struct {
+	Size int `json:"expand_size"`
+}
+
+func (dvolExpandReq DirvolumeExpandRequest) Validate() error {
+	return validation.ValidateStruct(&dvolExpandReq,
+		validation.Field(&dvolExpandReq.Size, validation.Required, validation.Min(1)),
+	)
+}
+
 // String functions
 func (v *BlockVolumeInfoResponse) String() string {
 	s := fmt.Sprintf("Name: %v\n"+
