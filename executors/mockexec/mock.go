@@ -49,7 +49,7 @@ type MockExecutor struct {
 	MockDirvolumeCreate          func(host string, volume string, dirvolume *executors.DirvolumeRequest) (*executors.Dirvolume, error)
 	MockDirvolumeDestroy         func(host string, volume string, dirvolume string) error
 	MockDirvolumeInfo            func(host string, volume string, dirvolume string) (*executors.Dirvolume, error)
-	MockDirvolumesInfo           func(host string, volume string) (*executors.SubvolInfo, error)
+	MockDirvolumesInfo           func(host string, volume string) (*executors.DirvolInfo, error)
 	MockDirvolumeExpand          func(host string, volume string, dirvolume *executors.DirvolumeRequest) (*executors.Dirvolume, error)
 
 	// default values
@@ -280,16 +280,16 @@ func NewMockExecutor() (*MockExecutor, error) {
 		return &executors.Dirvolume{}, nil
 	}
 
-	m.MockDirvolumesInfo = func(host string, volume string) (*executors.SubvolInfo, error) {
-		subvol := executors.Dirvolume{}
-		subvollist := make([]executors.Dirvolume, 0)
-		subvollist = append(subvollist, subvol)
-		subvollist = append(subvollist, subvol)
+	m.MockDirvolumesInfo = func(host string, volume string) (*executors.DirvolInfo, error) {
+		dirvol := executors.Dirvolume{}
+		dirvollist := make([]executors.Dirvolume, 0)
+		dirvollist = append(dirvollist, dirvol)
+		dirvollist = append(dirvollist, dirvol)
 
-		subvolinfo := &executors.SubvolInfo{
-			SubvolList: subvollist,
+		dirvolinfo := &executors.DirvolInfo{
+			DirvolList: dirvollist,
 		}
-		return subvolinfo, nil
+		return dirvolinfo, nil
 	}
 
 	m.MockDirvolumeExpand = func(host string, volume string, dirvolume *executors.DirvolumeRequest) (*executors.Dirvolume, error) {
@@ -431,7 +431,7 @@ func (m *MockExecutor) DirvolumeInfo(host string, volume string, dirvolume strin
 	return m.MockDirvolumeInfo(host, volume, dirvolume)
 }
 
-func (m *MockExecutor) DirvolumesInfo(host string, volume string) (*executors.SubvolInfo, error) {
+func (m *MockExecutor) DirvolumesInfo(host string, volume string) (*executors.DirvolInfo, error) {
 	return m.MockDirvolumesInfo(host, volume)
 }
 

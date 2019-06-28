@@ -88,7 +88,7 @@ func (s *CmdExecutor) DirvolumeInfo(host string, volume string,
 		OpRet      int                  `xml:"opRet"`
 		OpErrno    int                  `xml:"opErrno"`
 		OpErrStr   string               `xml:"opErrstr"`
-		SubvolInfo executors.SubvolInfo `xml:"volQuota"`
+		DirvolInfo executors.DirvolInfo `xml:"volQuota"`
 	}
 
 	command := []string{
@@ -102,17 +102,17 @@ func (s *CmdExecutor) DirvolumeInfo(host string, volume string,
 		return nil, fmt.Errorf("Unable to get dirvolume info of dirvolume name: %v, volume %v",
 			dirvolume, volume)
 	}
-	var subvolInfo CliOutput
-	err = xml.Unmarshal([]byte(results[0].Output), &subvolInfo)
+	var dirvolInfo CliOutput
+	err = xml.Unmarshal([]byte(results[0].Output), &dirvolInfo)
 	if err != nil {
 		return nil, fmt.Errorf("Unable to determine dirvolume info of dirvolume name: %v, volume %v",
 			dirvolume, volume)
 	}
-	logger.Debug("%+v\n", subvolInfo)
-	return &subvolInfo.SubvolInfo.SubvolList[0], nil
+	logger.Debug("%+v\n", dirvolInfo)
+	return &dirvolInfo.DirvolInfo.DirvolList[0], nil
 }
 
-func (s *CmdExecutor) DirvolumesInfo(host string, volume string) (*executors.SubvolInfo, error) {
+func (s *CmdExecutor) DirvolumesInfo(host string, volume string) (*executors.DirvolInfo, error) {
 
 	godbc.Require(host != "")
 	godbc.Require(volume != "")
@@ -121,7 +121,7 @@ func (s *CmdExecutor) DirvolumesInfo(host string, volume string) (*executors.Sub
 		OpRet      int                  `xml:"opRet"`
 		OpErrno    int                  `xml:"opErrno"`
 		OpErrStr   string               `xml:"opErrstr"`
-		SubvolInfo executors.SubvolInfo `xml:"volQuota"`
+		DirvolInfo executors.DirvolInfo `xml:"volQuota"`
 	}
 
 	command := []string{
@@ -134,12 +134,12 @@ func (s *CmdExecutor) DirvolumesInfo(host string, volume string) (*executors.Sub
 	if err := rex.AnyError(results, err); err != nil {
 		return nil, fmt.Errorf("Unable to get dirvolume info of volume: %v", volume)
 	}
-	var subvolInfo CliOutput
-	err = xml.Unmarshal([]byte(results[0].Output), &subvolInfo)
+	var dirvolInfo CliOutput
+	err = xml.Unmarshal([]byte(results[0].Output), &dirvolInfo)
 	if err != nil {
 		return nil, fmt.Errorf("Unable to unmarshal dirvolume info of volume %v", volume)
 	}
-	return &subvolInfo.SubvolInfo, nil
+	return &dirvolInfo.DirvolInfo, nil
 }
 
 func (s *CmdExecutor) DirvolumeExpand(host string, volume string,

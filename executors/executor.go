@@ -45,7 +45,7 @@ type Executor interface {
 	DirvolumeCreate(host string, volume string, dirvolume *DirvolumeRequest) (*Dirvolume, error)
 	DirvolumeDestroy(host string, volume string, dirvolume string) error
 	DirvolumeInfo(host string, volume string, dirvolume string) (*Dirvolume, error)
-	DirvolumesInfo(host string, volume string) (*SubvolInfo, error)
+	DirvolumesInfo(host string, volume string) (*DirvolInfo, error)
 	DirvolumeExpand(host string, volume string, dirvolume *DirvolumeRequest) (*Dirvolume, error)
 }
 
@@ -339,9 +339,9 @@ type Dirvolume struct {
 	AvailSize  int      `xml:"avail_space"`
 }
 
-type SubvolInfo struct {
+type DirvolInfo struct {
 	XMLName    xml.Name    `xml:"volQuota"`
-	SubvolList []Dirvolume `xml:"limit"`
+	DirvolList []Dirvolume `xml:"limit"`
 }
 
 func (dne *VolumeDoesNotExistErr) Error() string {

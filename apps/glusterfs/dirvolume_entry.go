@@ -144,7 +144,7 @@ func (dv *DirvolumeEntry) createDirvolumeRequest(db wdb.RODB) (*executors.Dirvol
 	}
 
 	if sshhost == "" {
-		return nil, "", errors.New("failed to find host for creating subvolme for cluster " + dv.Info.ClusterId)
+		return nil, "", errors.New("failed to find host for creating dirvolume for cluster " + dv.Info.ClusterId)
 	}
 
 	dvr.Name = dv.Info.Name
@@ -233,7 +233,7 @@ func (dv *DirvolumeEntry) destroyDirvolume(db wdb.RODB,
 	}
 
 	if sshhost == "" {
-		return errors.New("failed to find host for destroying subvolme for cluster " + dv.Info.ClusterId)
+		return errors.New("failed to find host for destroying dirvolme for cluster " + dv.Info.ClusterId)
 	}
 
 	if err := executor.DirvolumeDestroy(sshhost, DirPoolVolumeName, dv.Info.Name); err != nil {

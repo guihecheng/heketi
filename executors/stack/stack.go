@@ -375,7 +375,7 @@ func (es *ExecutorStack) DirvolumeInfo(host string, volume string,
 	return nil, NotSupportedError
 }
 
-func (es *ExecutorStack) DirvolumesInfo(host string, volume string) (*executors.SubvolInfo, error) {
+func (es *ExecutorStack) DirvolumesInfo(host string, volume string) (*executors.DirvolInfo, error) {
 	for _, e := range es.executors {
 		v, err := e.DirvolumesInfo(host, volume)
 		if err != NotSupportedError {
