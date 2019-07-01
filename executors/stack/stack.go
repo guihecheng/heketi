@@ -354,7 +354,7 @@ func (es *ExecutorStack) DirvolumeCreate(host string, volume string,
 }
 
 func (es *ExecutorStack) DirvolumeDestroy(host string, volume string,
-	dirvolume string) error {
+	dirvolume *executors.DirvolumeRequest) error {
 	for _, e := range es.executors {
 		err := e.DirvolumeDestroy(host, volume, dirvolume)
 		if err != NotSupportedError {
@@ -389,6 +389,17 @@ func (es *ExecutorStack) DirvolumeExpand(host string, volume string,
 	dirvolume *executors.DirvolumeRequest) (*executors.Dirvolume, error) {
 	for _, e := range es.executors {
 		v, err := e.DirvolumeExpand(host, volume, dirvolume)
+		if err != NotSupportedError {
+			return v, err
+		}
+	}
+	return nil, NotSupportedError
+}
+
+func (es *ExecutorStack) DirvolumeUpdateExport(host string, volume string,
+	dirvolume *executors.DirvolumeRequest) (*executors.Dirvolume, error) {
+	for _, e := range es.executors {
+		v, err := e.DirvolumeUpdateExport(host, volume, dirvolume)
 		if err != NotSupportedError {
 			return v, err
 		}

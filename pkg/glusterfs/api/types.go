@@ -561,7 +561,10 @@ func (dvolCreateRequest DirvolumeCreateRequest) Validate() error {
 
 type DirvolumeInfo struct {
 	DirvolumeCreateRequest
-	Id string `json:"id"`
+	Id     string `json:"id"`
+	Export struct {
+		IpList []string `json:"iplist"`
+	} `json:"export"`
 }
 
 type DirvolumeInfoResponse struct {
@@ -595,6 +598,10 @@ func (dvolExpandReq DirvolumeExpandRequest) Validate() error {
 	return validation.ValidateStruct(&dvolExpandReq,
 		validation.Field(&dvolExpandReq.Size, validation.Required, validation.Min(1)),
 	)
+}
+
+type DirvolumeShareRequest struct {
+	IpList []string `json:"iplist"`
 }
 
 // String functions

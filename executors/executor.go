@@ -43,10 +43,11 @@ type Executor interface {
 	GetBrickMountStatus(host string) (*BricksMountStatus, error)
 	ListBlockVolumes(host string, blockhostingvolume string) ([]string, error)
 	DirvolumeCreate(host string, volume string, dirvolume *DirvolumeRequest) (*Dirvolume, error)
-	DirvolumeDestroy(host string, volume string, dirvolume string) error
+	DirvolumeDestroy(host string, volume string, dirvolume *DirvolumeRequest) error
 	DirvolumeInfo(host string, volume string, dirvolume string) (*Dirvolume, error)
 	DirvolumesInfo(host string, volume string) (*DirvolInfo, error)
 	DirvolumeExpand(host string, volume string, dirvolume *DirvolumeRequest) (*Dirvolume, error)
+	DirvolumeUpdateExport(host string, volume string, dirvolume *DirvolumeRequest) (*Dirvolume, error)
 }
 
 // Enumerate durability types
@@ -327,8 +328,9 @@ type VolumeDoesNotExistErr struct {
 }
 
 type DirvolumeRequest struct {
-	Name string
-	Size int
+	Name         string
+	Size         int
+	ExportDirStr string
 }
 
 type Dirvolume struct {

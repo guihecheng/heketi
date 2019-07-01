@@ -32,6 +32,9 @@ func (s *CmdExecutor) DirvolumeCreate(host string, volume string,
 			s.glusterCommand(), volume, dirvolume.Name, dirvolume.Size),
 
 		fmt.Sprintf("umount %v", mountPath),
+
+		fmt.Sprintf("%v volume set %v export-dir %v",
+			s.glusterCommand(), volume, dirvolume.ExportDirStr),
 	}
 
 	err := rex.AnyError(s.RemoteExecutor.ExecCommands(host, cmds,
@@ -44,11 +47,11 @@ func (s *CmdExecutor) DirvolumeCreate(host string, volume string,
 }
 
 func (s *CmdExecutor) DirvolumeDestroy(host string, volume string,
-	dirvolume string) error {
+	dirvolume *executors.DirvolumeRequest) error {
 
 	godbc.Require(host != "")
 	godbc.Require(volume != "")
-	godbc.Require(dirvolume != "")
+	godbc.Require(dirvolume != nil)
 
 	mountPath := paths.VolumeMountPoint(volume)
 
@@ -63,8 +66,13 @@ func (s *CmdExecutor) DirvolumeDestroy(host string, volume string,
 	}
 
 	cmds = []string{
+
 		fmt.Sprintf("rm -rf %v/%v", mountPath, dirvolume),
+
 		fmt.Sprintf("umount %v", mountPath),
+
+		fmt.Sprintf("%v volume set %v export-dir %v",
+			s.glusterCommand(), volume, dirvolume.ExportDirStr),
 	}
 
 	err = rex.AnyError(s.RemoteExecutor.ExecCommands(host, cmds,
@@ -161,6 +169,27 @@ func (s *CmdExecutor) DirvolumeExpand(host string, volume string,
 			s.glusterCommand(), volume, dirvolume.Name, dirvolume.Size),
 
 		fmt.Sprintf("umount %v", mountPath),
+	}
+
+	err := rex.AnyError(s.RemoteExecutor.ExecCommands(host, cmds,
+		s.GlusterCliExecTimeout()))
+	if err != nil {
+		return nil, err
+	}
+
+	return &executors.Dirvolume{}, nil
+}
+
+func (s *CmdExecutor) DirvolumeUpdateExport(host string, volume string,
+	dirvolume *executors.DirvolumeRequest) (*executors.Dirvolume, error) {
+
+	godbc.Require(host != "")
+	godbc.Require(volume != "")
+	godbc.Require(dirvolume != nil)
+
+	cmds := []string{
+		fmt.Sprintf("%v volume set %v export-dir %v",
+			s.glusterCommand(), volume, dirvolume.ExportDirStr),
 	}
 
 	err := rex.AnyError(s.RemoteExecutor.ExecCommands(host, cmds,
