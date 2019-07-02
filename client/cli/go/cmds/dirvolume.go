@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"strings"
 	"text/template"
 
 	"github.com/heketi/heketi/pkg/glusterfs/api"
@@ -12,9 +13,12 @@ import (
 )
 
 var (
-	dv_size    int
-	dv_name    string
-	cluster_id string
+	dv_size        int
+	dv_name        string
+	cluster_id     string
+	dv_expand_size int
+	dv_id          string
+	iplist         string
 )
 
 func init() {
@@ -24,6 +28,8 @@ func init() {
 	dirvolumeCommand.AddCommand(dirvolumeInfoCommand)
 	dirvolumeCommand.AddCommand(dirvolumeListCommand)
 	dirvolumeCommand.AddCommand(dirvolumeExpandCommand)
+	dirvolumeCommand.AddCommand(dirvolumeExportCommand)
+	dirvolumeCommand.AddCommand(dirvolumeUnexportCommand)
 
 	dirvolumeCreateCommand.Flags().IntVar(&dv_size, "size", 0,
 		"\n\tSize of dirvolume in GiB")
@@ -32,16 +38,28 @@ func init() {
 	dirvolumeCreateCommand.Flags().StringVar(&dv_name, "name", "",
 		"\n\tOptional: Name of dirvolume. Only set if really necessary")
 
-	dirvolumeExpandCommand.Flags().IntVar(&expandSize, "expand-size", 0,
+	dirvolumeExpandCommand.Flags().IntVar(&dv_expand_size, "expand-size", 0,
 		"\n\tAmount in GiB to add to the dirvolume")
-	dirvolumeExpandCommand.Flags().StringVar(&id, "dirvolume", "",
+	dirvolumeExpandCommand.Flags().StringVar(&dv_id, "dirvolume", "",
 		"\n\tId of dirvolume to expand")
+
+	dirvolumeExportCommand.Flags().StringVar(&iplist, "iplist", "",
+		"\n\twhite list IPs that should have access")
+	dirvolumeExportCommand.Flags().StringVar(&dv_id, "dirvolume", "",
+		"\n\tId of dirvolume to export")
+
+	dirvolumeUnexportCommand.Flags().StringVar(&iplist, "iplist", "",
+		"\n\tIPs to kick out from white list")
+	dirvolumeUnexportCommand.Flags().StringVar(&dv_id, "dirvolume", "",
+		"\n\tId of dirvolume to unexport")
 
 	dirvolumeCreateCommand.SilenceUsage = true
 	dirvolumeDeleteCommand.SilenceUsage = true
 	dirvolumeExpandCommand.SilenceUsage = true
 	dirvolumeInfoCommand.SilenceUsage = true
 	dirvolumeListCommand.SilenceUsage = true
+	dirvolumeExportCommand.SilenceUsage = true
+	dirvolumeUnexportCommand.SilenceUsage = true
 }
 
 var dirvolumeCommand = &cobra.Command{
@@ -239,17 +257,17 @@ var dirvolumeExpandCommand = &cobra.Command{
 `,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		// Check volume size
-		if expandSize == 0 {
+		if dv_expand_size == 0 {
 			return errors.New("Missing dirvolume amount to expand")
 		}
 
-		if id == "" {
+		if dv_id == "" {
 			return errors.New("Missing dirvolume id")
 		}
 
 		// Create request
 		req := &api.DirvolumeExpandRequest{}
-		req.Size = expandSize
+		req.Size = dv_expand_size
 
 		// Create client
 		heketi, err := newHeketiClient()
@@ -258,7 +276,99 @@ var dirvolumeExpandCommand = &cobra.Command{
 		}
 
 		// Expand dirvolume
-		dirvolume, err := heketi.DirvolumeExpand(id, req)
+		dirvolume, err := heketi.DirvolumeExpand(dv_id, req)
+		if err != nil {
+			return err
+		}
+
+		if options.Json {
+			data, err := json.Marshal(dirvolume)
+			if err != nil {
+				return err
+			}
+			fmt.Fprintf(stdout, string(data))
+		} else {
+			printDirvolumeInfo(dirvolume)
+		}
+		return nil
+	},
+}
+
+var dirvolumeExportCommand = &cobra.Command{
+	Use:   "export",
+	Short: "Export a dirvolume",
+	Long:  "Export a dirvolume",
+	Example: `  * Allow dirvolume access to IPs: 10.0.0.1,10.0.0.2
+    $ heketi-cli dirvolume export --dirvolume=60d46d518074b13a04ce1022c8c7193c --iplist=10.0.0.1,10.0.0.2
+`,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		// Check empty list
+		if len(iplist) == 0 {
+			return errors.New("Missing IP(s) to allow access")
+		}
+
+		if dv_id == "" {
+			return errors.New("Missing dirvolume id")
+		}
+
+		// Create request
+		req := &api.DirvolumeExportRequest{}
+		req.IpList = strings.Split(iplist, ",")
+
+		// Create client
+		heketi, err := newHeketiClient()
+		if err != nil {
+			return err
+		}
+
+		// Export dirvolume
+		dirvolume, err := heketi.DirvolumeExport(dv_id, req)
+		if err != nil {
+			return err
+		}
+
+		if options.Json {
+			data, err := json.Marshal(dirvolume)
+			if err != nil {
+				return err
+			}
+			fmt.Fprintf(stdout, string(data))
+		} else {
+			printDirvolumeInfo(dirvolume)
+		}
+		return nil
+	},
+}
+
+var dirvolumeUnexportCommand = &cobra.Command{
+	Use:   "unexport",
+	Short: "Unexport a dirvolume",
+	Long:  "Unexport a dirvolume",
+	Example: `  * Deny dirvolume access to IPs: 10.0.0.1,10.0.0.2
+    $ heketi-cli dirvolume unexport --dirvolume=60d46d518074b13a04ce1022c8c7193c --iplist=10.0.0.1,10.0.0.2
+`,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		// Check empty list
+		if len(iplist) == 0 {
+			return errors.New("Missing IP(s) to deny access")
+		}
+
+		if dv_id == "" {
+			return errors.New("Missing dirvolume id")
+		}
+
+		// Create request
+		req := &api.DirvolumeExportRequest{}
+		req.IpList = strings.Split(iplist, ",")
+
+		// Create client
+		heketi, err := newHeketiClient()
+		if err != nil {
+			return err
+		}
+
+		// Unexport dirvolume
+		dirvolume, err := heketi.DirvolumeUnexport(dv_id, req)
 		if err != nil {
 			return err
 		}

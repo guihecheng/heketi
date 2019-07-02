@@ -220,3 +220,109 @@ func (c *Client) DirvolumeExpand(id string, request *api.DirvolumeExpandRequest)
 
 	return &dirvolume, nil
 }
+
+func (c *Client) DirvolumeExport(id string, request *api.DirvolumeExportRequest) (
+	*api.DirvolumeInfoResponse, error) {
+
+	// Marshal request to JSON
+	buffer, err := json.Marshal(request)
+	if err != nil {
+		return nil, err
+	}
+
+	// Create a request
+	req, err := http.NewRequest("POST",
+		c.host+"/dirvolumes/"+id+"/export",
+		bytes.NewBuffer(buffer))
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Content-Type", "application/json")
+
+	// Set token
+	err = c.setToken(req)
+	if err != nil {
+		return nil, err
+	}
+
+	// Send request
+	r, err := c.do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer r.Body.Close()
+	if r.StatusCode != http.StatusAccepted {
+		return nil, utils.GetErrorFromResponse(r)
+	}
+
+	// Wait for response
+	r, err = c.waitForResponseWithTimer(r, time.Second)
+	if err != nil {
+		return nil, err
+	}
+	if r.StatusCode != http.StatusOK {
+		return nil, utils.GetErrorFromResponse(r)
+	}
+
+	// Read JSON response
+	var dirvolume api.DirvolumeInfoResponse
+	err = utils.GetJsonFromResponse(r, &dirvolume)
+	if err != nil {
+		return nil, err
+	}
+
+	return &dirvolume, nil
+}
+
+func (c *Client) DirvolumeUnexport(id string, request *api.DirvolumeExportRequest) (
+	*api.DirvolumeInfoResponse, error) {
+
+	// Marshal request to JSON
+	buffer, err := json.Marshal(request)
+	if err != nil {
+		return nil, err
+	}
+
+	// Create a request
+	req, err := http.NewRequest("POST",
+		c.host+"/dirvolumes/"+id+"/unexport",
+		bytes.NewBuffer(buffer))
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Content-Type", "application/json")
+
+	// Set token
+	err = c.setToken(req)
+	if err != nil {
+		return nil, err
+	}
+
+	// Send request
+	r, err := c.do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer r.Body.Close()
+	if r.StatusCode != http.StatusAccepted {
+		return nil, utils.GetErrorFromResponse(r)
+	}
+
+	// Wait for response
+	r, err = c.waitForResponseWithTimer(r, time.Second)
+	if err != nil {
+		return nil, err
+	}
+	if r.StatusCode != http.StatusOK {
+		return nil, utils.GetErrorFromResponse(r)
+	}
+
+	// Read JSON response
+	var dirvolume api.DirvolumeInfoResponse
+	err = utils.GetJsonFromResponse(r, &dirvolume)
+	if err != nil {
+		return nil, err
+	}
+
+	return &dirvolume, nil
+}
