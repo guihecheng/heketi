@@ -39,6 +39,8 @@ const (
 	OperationCreateDirvolume
 	OperationDeleteDirvolume
 	OperationExpandDirvolume
+	OperationExportDirvolume
+	OperationUnexportDirvolume
 )
 
 // PendingChangeType identifies what kind of lower-level new item or change
@@ -61,6 +63,8 @@ const (
 	OpAddDirvolume
 	OpDeleteDirvolume
 	OpExpandDirvolume
+	OpExportDirvolume
+	OpUnexportDirvolume
 )
 
 // PendingOperationAction tracks individual changes to entries within the
@@ -125,6 +129,10 @@ func (v PendingOperationType) Name() string {
 		return "delete-dirvolume"
 	case OperationExpandDirvolume:
 		return "expand-dirvolume"
+	case OperationExportDirvolume:
+		return "export-dirvolume"
+	case OperationUnexportDirvolume:
+		return "unexport-dirvolume"
 	}
 	return "unknown"
 }
@@ -160,6 +168,10 @@ func (c PendingChangeType) Name() string {
 		return "Delete dirvolume"
 	case OpExpandDirvolume:
 		return "Expand dirvolume"
+	case OpExportDirvolume:
+		return "Export dirvolume"
+	case OpUnexportDirvolume:
+		return "Unexport dirvolume"
 	}
 	return "Unknown"
 }

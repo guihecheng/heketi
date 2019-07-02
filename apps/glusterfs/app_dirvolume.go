@@ -200,3 +200,101 @@ func (a *App) DirvolumeExpand(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
+
+func (a *App) DirvolumeExport(w http.ResponseWriter, r *http.Request) {
+	var msg api.DirvolumeExportRequest
+	err := utils.GetJsonFromRequest(r, &msg)
+	if err != nil {
+		http.Error(w, "request unable to be parsed", 422)
+		return
+	}
+
+	err = msg.Validate()
+	if err != nil {
+		http.Error(w, "validation failed: "+err.Error(), http.StatusBadRequest)
+		logger.LogError("validation failed: " + err.Error())
+		return
+	}
+
+	if len(msg.IpList) == 0 {
+		http.Error(w, "Empty IP list", http.StatusBadRequest)
+		logger.LogError("Empty IP list")
+		return
+	}
+
+	vars := mux.Vars(r)
+	id := vars["id"]
+
+	var dvol *DirvolumeEntry
+	err = a.db.View(func(tx *bolt.Tx) error {
+		var err error
+		dvol, err = NewDirvolumeEntryFromId(tx, id)
+		if err == ErrNotFound {
+			http.Error(w, err.Error(), http.StatusNotFound)
+			return err
+		} else if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return err
+		}
+
+		return nil
+	})
+	if err != nil {
+		return
+	}
+
+	dvx := NewDirvolumeExportOperation(dvol, a.db, msg.IpList)
+	if err := AsyncHttpOperation(a, w, r, dvx); err != nil {
+		OperationHttpErrorf(w, err, "Failed to set up dirvolume export: %v", err)
+		return
+	}
+}
+
+func (a *App) DirvolumeUnexport(w http.ResponseWriter, r *http.Request) {
+	var msg api.DirvolumeExportRequest
+	err := utils.GetJsonFromRequest(r, &msg)
+	if err != nil {
+		http.Error(w, "request unable to be parsed", 422)
+		return
+	}
+
+	err = msg.Validate()
+	if err != nil {
+		http.Error(w, "validation failed: "+err.Error(), http.StatusBadRequest)
+		logger.LogError("validation failed: " + err.Error())
+		return
+	}
+
+	if len(msg.IpList) == 0 {
+		http.Error(w, "Empty IP list", http.StatusBadRequest)
+		logger.LogError("Empty IP list")
+		return
+	}
+
+	vars := mux.Vars(r)
+	id := vars["id"]
+
+	var dvol *DirvolumeEntry
+	err = a.db.View(func(tx *bolt.Tx) error {
+		var err error
+		dvol, err = NewDirvolumeEntryFromId(tx, id)
+		if err == ErrNotFound {
+			http.Error(w, err.Error(), http.StatusNotFound)
+			return err
+		} else if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return err
+		}
+
+		return nil
+	})
+	if err != nil {
+		return
+	}
+
+	dvx := NewDirvolumeUnexportOperation(dvol, a.db, msg.IpList)
+	if err := AsyncHttpOperation(a, w, r, dvx); err != nil {
+		OperationHttpErrorf(w, err, "Failed to set up dirvolume unexport: %v", err)
+		return
+	}
+}

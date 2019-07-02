@@ -58,6 +58,10 @@ func LoadOperation(
 		op, err = loadDirvolumeDeleteOperation(db, p)
 	case OperationExpandDirvolume:
 		op, err = loadDirvolumeExpandOperation(db, p)
+	case OperationExportDirvolume:
+		op, err = loadDirvolumeExportOperation(db, p)
+	case OperationUnexportDirvolume:
+		op, err = loadDirvolumeUnexportOperation(db, p)
 	default:
 		err = NewErrNotLoadable(p.Id, p.Type)
 	}

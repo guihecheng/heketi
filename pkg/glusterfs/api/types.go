@@ -52,6 +52,17 @@ func ValidateUUID(value interface{}) error {
 	return nil
 }
 
+func ValidateIP(value interface{}) error {
+	s, _ := value.([]string)
+	for _, ip := range s {
+		err := validation.Validate(ip, validation.Required, is.IP)
+		if err != nil {
+			return fmt.Errorf("%v is not a valid IP address", s)
+		}
+	}
+	return nil
+}
+
 // State
 type EntryState string
 
@@ -255,6 +266,7 @@ type ClusterInfoResponse struct {
 	ClusterFlags
 	BlockVolumes sort.StringSlice `json:"blockvolumes"`
 	Dirvolumes   sort.StringSlice `json:"dirvolumes"`
+	ExportDirStr string           `json:"exportdirstr"`
 }
 
 type ClusterListResponse struct {
@@ -600,8 +612,14 @@ func (dvolExpandReq DirvolumeExpandRequest) Validate() error {
 	)
 }
 
-type DirvolumeShareRequest struct {
+type DirvolumeExportRequest struct {
 	IpList []string `json:"iplist"`
+}
+
+func (dvolExpandReq DirvolumeExportRequest) Validate() error {
+	return validation.ValidateStruct(&dvolExpandReq,
+		validation.Field(&dvolExpandReq.IpList, validation.By(ValidateIP)),
+	)
 }
 
 // String functions

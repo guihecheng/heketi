@@ -371,3 +371,220 @@ func (dve *DirvolumeExpandOperation) CleanDone() error {
 		return dve.op.Delete(tx)
 	})
 }
+
+type DirvolumeExportOperation struct {
+	OperationManager
+	noRetriesOperation
+	dvol   *DirvolumeEntry
+	IpList []string
+}
+
+func NewDirvolumeExportOperation(
+	dvol *DirvolumeEntry, db wdb.DB, ipList []string) *DirvolumeExportOperation {
+
+	return &DirvolumeExportOperation{
+		OperationManager: OperationManager{
+			db: db,
+			op: NewPendingOperationEntry(NEW_ID),
+		},
+		dvol:   dvol,
+		IpList: ipList,
+	}
+}
+
+func loadDirvolumeExportOperation(
+	db wdb.DB, p *PendingOperationEntry) (*DirvolumeExportOperation, error) {
+
+	dvols, err := dirvolumesFromOp(db, p)
+	if err != nil {
+		return nil, err
+	}
+	if len(dvols) != 1 {
+		return nil, fmt.Errorf(
+			"Incorrect number of dirvolumes (%v) for export operation: %v",
+			len(dvols), p.Id)
+	}
+
+	return &DirvolumeExportOperation{
+		OperationManager: OperationManager{
+			db: db,
+			op: p,
+		},
+		dvol: dvols[0],
+	}, nil
+}
+
+func (dvx *DirvolumeExportOperation) Label() string {
+	return "Export Dirvolume"
+}
+
+func (dvx *DirvolumeExportOperation) ResourceUrl() string {
+	return fmt.Sprintf("/dirvolumes/%v", dvx.dvol.Info.Id)
+}
+
+func (dvx *DirvolumeExportOperation) Build() error {
+	return dvx.db.Update(func(tx *bolt.Tx) error {
+		newIpList := make([]string, 0)
+		exists := make(map[string]bool)
+		for _, ip := range dvx.dvol.Info.Export.IpList {
+			exists[ip] = true
+			newIpList = append(newIpList, ip)
+		}
+		for _, ip := range dvx.IpList {
+			if !exists[ip] {
+				newIpList = append(newIpList, ip)
+			}
+		}
+		dvx.dvol.Info.Export.IpList = newIpList
+		dvx.op.RecordExportDirvolume(dvx.dvol)
+		if e := dvx.op.Save(tx); e != nil {
+			return e
+		}
+		return nil
+	})
+}
+
+func (dvx *DirvolumeExportOperation) Exec(executor executors.Executor) error {
+	err := dvx.dvol.exportDirvolume(dvx.db, executor)
+	if err != nil {
+		logger.LogError("Error executing export dirvolume: %v", err)
+		return OperationRetryError{err}
+	}
+	return nil
+}
+
+func (dvx *DirvolumeExportOperation) Finalize() error {
+	return dvx.db.Update(func(tx *bolt.Tx) error {
+		dvx.op.FinalizeDirvolume(dvx.dvol)
+		if e := dvx.dvol.Save(tx); e != nil {
+			return e
+		}
+
+		dvx.op.Delete(tx)
+		return nil
+	})
+}
+
+func (dvx *DirvolumeExportOperation) Rollback(executor executors.Executor) error {
+	return rollbackViaClean(dvx, executor)
+}
+
+func (dvx *DirvolumeExportOperation) Clean(executor executors.Executor) error {
+	logger.Info("Starting Clean for %v op:%v", dvx.Label(), dvx.op.Id)
+	return nil
+}
+
+func (dvx *DirvolumeExportOperation) CleanDone() error {
+	logger.Info("Clean is done for %v op:%v", dvx.Label(), dvx.op.Id)
+	return dvx.db.Update(func(tx *bolt.Tx) error {
+		return dvx.op.Delete(tx)
+	})
+}
+
+type DirvolumeUnexportOperation struct {
+	OperationManager
+	noRetriesOperation
+	dvol   *DirvolumeEntry
+	IpList []string
+}
+
+func NewDirvolumeUnexportOperation(
+	dvol *DirvolumeEntry, db wdb.DB, ipList []string) *DirvolumeUnexportOperation {
+
+	return &DirvolumeUnexportOperation{
+		OperationManager: OperationManager{
+			db: db,
+			op: NewPendingOperationEntry(NEW_ID),
+		},
+		dvol:   dvol,
+		IpList: ipList,
+	}
+}
+
+func loadDirvolumeUnexportOperation(
+	db wdb.DB, p *PendingOperationEntry) (*DirvolumeUnexportOperation, error) {
+
+	dvols, err := dirvolumesFromOp(db, p)
+	if err != nil {
+		return nil, err
+	}
+	if len(dvols) != 1 {
+		return nil, fmt.Errorf(
+			"Incorrect number of dirvolumes (%v) for unexport operation: %v",
+			len(dvols), p.Id)
+	}
+
+	return &DirvolumeUnexportOperation{
+		OperationManager: OperationManager{
+			db: db,
+			op: p,
+		},
+		dvol: dvols[0],
+	}, nil
+}
+
+func (dvx *DirvolumeUnexportOperation) Label() string {
+	return "Unexport Dirvolume"
+}
+
+func (dvx *DirvolumeUnexportOperation) ResourceUrl() string {
+	return fmt.Sprintf("/dirvolumes/%v", dvx.dvol.Info.Id)
+}
+
+func (dvx *DirvolumeUnexportOperation) Build() error {
+	return dvx.db.Update(func(tx *bolt.Tx) error {
+		newIpList := make([]string, 0)
+		exists := make(map[string]bool)
+		for _, ip := range dvx.IpList {
+			exists[ip] = true
+		}
+		for _, ip := range dvx.dvol.Info.Export.IpList {
+			if !exists[ip] {
+				newIpList = append(newIpList, ip)
+			}
+		}
+		dvx.dvol.Info.Export.IpList = newIpList
+		dvx.op.RecordUnexportDirvolume(dvx.dvol)
+		if e := dvx.op.Save(tx); e != nil {
+			return e
+		}
+		return nil
+	})
+}
+
+func (dvx *DirvolumeUnexportOperation) Exec(executor executors.Executor) error {
+	err := dvx.dvol.exportDirvolume(dvx.db, executor)
+	if err != nil {
+		logger.LogError("Error executing unexport dirvolume: %v", err)
+		return OperationRetryError{err}
+	}
+	return nil
+}
+
+func (dvx *DirvolumeUnexportOperation) Finalize() error {
+	return dvx.db.Update(func(tx *bolt.Tx) error {
+		dvx.op.FinalizeDirvolume(dvx.dvol)
+		if e := dvx.dvol.Save(tx); e != nil {
+			return e
+		}
+
+		dvx.op.Delete(tx)
+		return nil
+	})
+}
+
+func (dvx *DirvolumeUnexportOperation) Rollback(executor executors.Executor) error {
+	return rollbackViaClean(dvx, executor)
+}
+
+func (dvx *DirvolumeUnexportOperation) Clean(executor executors.Executor) error {
+	logger.Info("Starting Clean for %v op:%v", dvx.Label(), dvx.op.Id)
+	return nil
+}
+
+func (dvx *DirvolumeUnexportOperation) CleanDone() error {
+	logger.Info("Clean is done for %v op:%v", dvx.Label(), dvx.op.Id)
+	return dvx.db.Update(func(tx *bolt.Tx) error {
+		return dvx.op.Delete(tx)
+	})
+}

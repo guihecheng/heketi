@@ -310,6 +310,16 @@ func (p *PendingOperationEntry) RecordExpandDirvolume(dv *DirvolumeEntry, sizeGB
 	p.Type = OperationExpandDirvolume
 }
 
+func (p *PendingOperationEntry) RecordExportDirvolume(dv *DirvolumeEntry) {
+	p.recordChange(OpExportDirvolume, dv.Info.Id)
+	p.Type = OperationExportDirvolume
+}
+
+func (p *PendingOperationEntry) RecordUnexportDirvolume(dv *DirvolumeEntry) {
+	p.recordChange(OpUnexportDirvolume, dv.Info.Id)
+	p.Type = OperationUnexportDirvolume
+}
+
 func (p *PendingOperationEntry) FinalizeDirvolume(dv *DirvolumeEntry) {
 	dv.Pending.Id = ""
 	return

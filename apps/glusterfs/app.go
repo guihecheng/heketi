@@ -626,7 +626,7 @@ func (a *App) SetRoutes(router *mux.Router) error {
 			Pattern:     "/blockvolumes",
 			HandlerFunc: a.BlockVolumeList},
 
-		// Subolumes
+		// Dirvolumes
 		rest.Route{
 			Name:        "DirvolumeCreate",
 			Method:      "POST",
@@ -652,6 +652,16 @@ func (a *App) SetRoutes(router *mux.Router) error {
 			Method:      "POST",
 			Pattern:     "/dirvolumes/{id:[A-Fa-f0-9]+}/expand",
 			HandlerFunc: a.DirvolumeExpand},
+		rest.Route{
+			Name:        "DirvolumeExport",
+			Method:      "POST",
+			Pattern:     "/dirvolumes/{id:[A-Fa-f0-9]+}/export",
+			HandlerFunc: a.DirvolumeExport},
+		rest.Route{
+			Name:        "DirvolumeUnexport",
+			Method:      "POST",
+			Pattern:     "/dirvolumes/{id:[A-Fa-f0-9]+}/unexport",
+			HandlerFunc: a.DirvolumeUnexport},
 
 		// Backup
 		rest.Route{
