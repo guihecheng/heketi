@@ -7,7 +7,7 @@ import (
 	//	"sync"
 	"testing"
 
-	//"github.com/heketi/heketi/executors"
+	"github.com/heketi/heketi/executors"
 	"github.com/heketi/heketi/pkg/glusterfs/api"
 
 	"github.com/boltdb/bolt"
@@ -278,7 +278,7 @@ func TestDirvolumeCreatePendingRollbackCleanupFailure(t *testing.T) {
 	// now we're going to pretend exec failed and inject an
 	// error condition into DirvolumeDestroy
 
-	app.xo.MockDirvolumeDestroy = func(host string, volume string, dirvolume string) error {
+	app.xo.MockDirvolumeDestroy = func(host string, volume string, dirvolume *executors.DirvolumeRequest) error {
 		return fmt.Errorf("fake error")
 	}
 
@@ -738,6 +738,168 @@ func TestDirvolumeExpandOperation(t *testing.T) {
 	})
 
 	dve := NewDirvolumeExpandOperation(dvol, app.db, 100)
+	e = dve.Build()
+	tests.Assert(t, e == nil)
+
+	app.db.View(func(tx *bolt.Tx) error {
+		po, e := PendingOperationList(tx)
+		tests.Assert(t, e == nil)
+		tests.Assert(t, len(po) == 1)
+		return nil
+	})
+
+	e = dve.Exec(app.executor)
+	tests.Assert(t, e == nil)
+	e = dve.Finalize()
+	tests.Assert(t, e == nil)
+
+	app.db.View(func(tx *bolt.Tx) error {
+		po, e := PendingOperationList(tx)
+		tests.Assert(t, e == nil)
+		tests.Assert(t, len(po) == 0)
+		return nil
+	})
+}
+
+func TestDirvolumeExportOperation(t *testing.T) {
+	tmpfile := tests.Tempfile()
+	defer os.Remove(tmpfile)
+
+	// Create the app
+	app := NewTestApp(tmpfile)
+	defer app.Close()
+
+	err := setupSampleDbWithTopology(app,
+		1,    // clusters
+		3,    // nodes_per_cluster
+		1,    // devices_per_node,
+		6*TB, // disksize)
+	)
+	tests.Assert(t, err == nil)
+
+	var clusterId string
+	err = app.db.View(func(tx *bolt.Tx) error {
+		clusters, err := ClusterList(tx)
+		if err != nil {
+			return err
+		}
+
+		tests.Assert(t, len(clusters) == 1)
+		cluster, err := NewClusterEntryFromId(tx, clusters[0])
+		tests.Assert(t, err == nil)
+
+		clusterId = cluster.Info.Id
+
+		return nil
+	})
+	tests.Assert(t, err == nil)
+	tests.Assert(t, clusterId != "")
+
+	req := &api.DirvolumeCreateRequest{}
+	req.Size = 1024
+	req.ClusterId = clusterId
+
+	// first we need to create a dirvolume to delete
+	dvol := NewDirvolumeEntryFromRequest(req)
+	dvc := NewDirvolumeCreateOperation(dvol, app.db)
+
+	e := dvc.Build()
+	tests.Assert(t, e == nil)
+	e = dvc.Exec(app.executor)
+	tests.Assert(t, e == nil)
+	e = dvc.Finalize()
+	tests.Assert(t, e == nil)
+
+	app.db.View(func(tx *bolt.Tx) error {
+		po, e := PendingOperationList(tx)
+		tests.Assert(t, e == nil)
+		tests.Assert(t, len(po) == 0)
+		return nil
+	})
+
+	ipList := []string{"10.0.0.1", "10.0.0.2"}
+	dve := NewDirvolumeExportOperation(dvol, app.db, ipList)
+	e = dve.Build()
+	tests.Assert(t, e == nil)
+
+	app.db.View(func(tx *bolt.Tx) error {
+		po, e := PendingOperationList(tx)
+		tests.Assert(t, e == nil)
+		tests.Assert(t, len(po) == 1)
+		return nil
+	})
+
+	e = dve.Exec(app.executor)
+	tests.Assert(t, e == nil)
+	e = dve.Finalize()
+	tests.Assert(t, e == nil)
+
+	app.db.View(func(tx *bolt.Tx) error {
+		po, e := PendingOperationList(tx)
+		tests.Assert(t, e == nil)
+		tests.Assert(t, len(po) == 0)
+		return nil
+	})
+}
+
+func TestDirvolumeUnexportOperation(t *testing.T) {
+	tmpfile := tests.Tempfile()
+	defer os.Remove(tmpfile)
+
+	// Create the app
+	app := NewTestApp(tmpfile)
+	defer app.Close()
+
+	err := setupSampleDbWithTopology(app,
+		1,    // clusters
+		3,    // nodes_per_cluster
+		1,    // devices_per_node,
+		6*TB, // disksize)
+	)
+	tests.Assert(t, err == nil)
+
+	var clusterId string
+	err = app.db.View(func(tx *bolt.Tx) error {
+		clusters, err := ClusterList(tx)
+		if err != nil {
+			return err
+		}
+
+		tests.Assert(t, len(clusters) == 1)
+		cluster, err := NewClusterEntryFromId(tx, clusters[0])
+		tests.Assert(t, err == nil)
+
+		clusterId = cluster.Info.Id
+
+		return nil
+	})
+	tests.Assert(t, err == nil)
+	tests.Assert(t, clusterId != "")
+
+	req := &api.DirvolumeCreateRequest{}
+	req.Size = 1024
+	req.ClusterId = clusterId
+
+	// first we need to create a dirvolume to delete
+	dvol := NewDirvolumeEntryFromRequest(req)
+	dvc := NewDirvolumeCreateOperation(dvol, app.db)
+
+	e := dvc.Build()
+	tests.Assert(t, e == nil)
+	e = dvc.Exec(app.executor)
+	tests.Assert(t, e == nil)
+	e = dvc.Finalize()
+	tests.Assert(t, e == nil)
+
+	app.db.View(func(tx *bolt.Tx) error {
+		po, e := PendingOperationList(tx)
+		tests.Assert(t, e == nil)
+		tests.Assert(t, len(po) == 0)
+		return nil
+	})
+
+	ipList := []string{"10.0.0.1", "10.0.0.2"}
+	dve := NewDirvolumeUnexportOperation(dvol, app.db, ipList)
 	e = dve.Build()
 	tests.Assert(t, e == nil)
 

@@ -638,3 +638,55 @@ func TestDirvolumeExpandBadJson(t *testing.T) {
 	tests.Assert(t, err == nil)
 	tests.Assert(t, r.StatusCode == 422)
 }
+
+func TestDirvolumeExportBadJson(t *testing.T) {
+	tmpfile := tests.Tempfile()
+	defer os.Remove(tmpfile)
+
+	// Create the app
+	app := NewTestApp(tmpfile)
+	defer app.Close()
+	router := mux.NewRouter()
+	app.SetRoutes(router)
+
+	// Setup the server
+	ts := httptest.NewServer(router)
+	defer ts.Close()
+
+	// VolumeExpand JSON Request
+	request := []byte(`{
+		"asdfghjkl"
+    }`)
+
+	// Send request
+	r, err := http.Post(ts.URL+"/dirvolumes", "application/json", bytes.NewBuffer(request))
+	tests.Assert(t, err == nil)
+	tests.Assert(t, r.StatusCode == 422)
+}
+
+func TestDirvolumeExportBadIP(t *testing.T) {
+	tmpfile := tests.Tempfile()
+	defer os.Remove(tmpfile)
+
+	// Create the app
+	app := NewTestApp(tmpfile)
+	defer app.Close()
+	router := mux.NewRouter()
+	app.SetRoutes(router)
+
+	// Setup the server
+	ts := httptest.NewServer(router)
+	defer ts.Close()
+
+	// VolumeExpand JSON Request
+	request := []byte(`{
+        "iplist" : [
+            "10.0.0"
+        ]
+    }`)
+
+	// Send request
+	r, err := http.Post(ts.URL+"/dirvolumes", "application/json", bytes.NewBuffer(request))
+	tests.Assert(t, err == nil)
+	tests.Assert(t, r.StatusCode == 400)
+}
