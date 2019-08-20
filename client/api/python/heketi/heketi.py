@@ -278,6 +278,52 @@ class HeketiClient(object):
         req = self._make_request('DELETE', uri)
         return req.status_code == requests.codes.NO_CONTENT
 
+    def dirvolume_create(self, dirvolume_options={}):
+        '''
+            size: 1
+            cluster: <cluster-id>
+            name: <yourname>
+        '''
+        uri = '/dirvolumes'
+        req = self._make_request('POST', uri, dirvolume_options)
+        if req.status_code == requests.codes.ok:
+            return req.json()
+
+    def dirvolume_list(self):
+        uri = '/dirvolumes'
+        req = self._make_request('GET', uri)
+        if req.status_code == requests.codes.ok:
+            return req.json()
+
+    def dirvolume_info(self, dirvolume_id):
+        uri = '/dirvolumes/' + dirvolume_id
+        req = self._make_request('GET', uri)
+        if req.status_code == requests.codes.ok:
+            return req.json()
+
+    def dirvolume_expand(self, dirvolume_id, expand_size={}):
+        uri = '/dirvolumes/' + dirvolume_id + '/expand'
+        req = self._make_request('POST', uri, expand_size)
+        if req.status_code == requests.codes.ok:
+            return req.json()
+
+    def dirvolume_export(self, dirvolume_id, ip_list={}):
+        uri = '/dirvolumes/' + dirvolume_id + '/export'
+        req = self._make_request('POST', uri, ip_list)
+        if req.status_code == requests.codes.ok:
+            return req.json()
+
+    def dirvolume_unexport(self, dirvolume_id, ip_list={}):
+        uri = '/dirvolumes/' + dirvolume_id + '/unexport'
+        req = self._make_request('POST', uri, ip_list)
+        if req.status_code == requests.codes.ok:
+            return req.json()
+
+    def dirvolume_delete(self, dirvolume_id):
+        uri = '/dirvolumes/' + dirvolume_id
+        req = self._make_request('DELETE', uri)
+        return req.status_code == requests.codes.NO_CONTENT
+
     def db_dump(self):
         uri = '/db/dump'
         req = self._make_request('GET', uri)
