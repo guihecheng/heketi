@@ -41,6 +41,7 @@ const (
 	BOLTDB_BUCKET_DBATTRIBUTE      = "DBATTRIBUTE"
 	DB_CLUSTER_HAS_FILE_BLOCK_FLAG = "DB_CLUSTER_HAS_FILE_BLOCK_FLAG"
 	DB_BRICK_HAS_SUBTYPE_FIELD     = "DB_BRICK_HAS_SUBTYPE_FIELD"
+	BOLTDB_BUCKET_DIRVOLUME        = "DIRVOLUME"
 	DEFAULT_OP_LIMIT               = 8
 )
 
@@ -188,6 +189,9 @@ func (app *App) setup(conf *GlusterFSConfig) error {
 
 	// Set block settings
 	app.setBlockSettings()
+
+	// Set dir settings
+	app.setDirSettings()
 
 	// initialize sub-objects and background tasks
 	app.initOpTracker()
@@ -455,6 +459,14 @@ func (a *App) setBlockSettings() {
 
 }
 
+func (a *App) setDirSettings() {
+	if a.conf.DirPoolVolumeName != "" {
+		logger.Info("Dir: Dir Pool Volume Name: %v", a.conf.DirPoolVolumeName)
+		DirPoolVolumeName = a.conf.DirPoolVolumeName
+	}
+
+}
+
 // Register Routes
 func (a *App) SetRoutes(router *mux.Router) error {
 
@@ -613,6 +625,43 @@ func (a *App) SetRoutes(router *mux.Router) error {
 			Method:      "GET",
 			Pattern:     "/blockvolumes",
 			HandlerFunc: a.BlockVolumeList},
+
+		// Dirvolumes
+		rest.Route{
+			Name:        "DirvolumeCreate",
+			Method:      "POST",
+			Pattern:     "/dirvolumes",
+			HandlerFunc: a.DirvolumeCreate},
+		rest.Route{
+			Name:        "DirvolumeDelete",
+			Method:      "DELETE",
+			Pattern:     "/dirvolumes/{id:[A-Fa-f0-9]+}",
+			HandlerFunc: a.DirvolumeDelete},
+		rest.Route{
+			Name:        "DirvolumeInfo",
+			Method:      "GET",
+			Pattern:     "/dirvolumes/{id:[A-Fa-f0-9]+}",
+			HandlerFunc: a.DirvolumeInfo},
+		rest.Route{
+			Name:        "DirvolumeList",
+			Method:      "GET",
+			Pattern:     "/dirvolumes",
+			HandlerFunc: a.DirvolumeList},
+		rest.Route{
+			Name:        "DirvolumeExpand",
+			Method:      "POST",
+			Pattern:     "/dirvolumes/{id:[A-Fa-f0-9]+}/expand",
+			HandlerFunc: a.DirvolumeExpand},
+		rest.Route{
+			Name:        "DirvolumeExport",
+			Method:      "POST",
+			Pattern:     "/dirvolumes/{id:[A-Fa-f0-9]+}/export",
+			HandlerFunc: a.DirvolumeExport},
+		rest.Route{
+			Name:        "DirvolumeUnexport",
+			Method:      "POST",
+			Pattern:     "/dirvolumes/{id:[A-Fa-f0-9]+}/unexport",
+			HandlerFunc: a.DirvolumeUnexport},
 
 		// Backup
 		rest.Route{

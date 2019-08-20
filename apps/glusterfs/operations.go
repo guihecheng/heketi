@@ -201,12 +201,32 @@ func volumesFromOp(db wdb.RODB,
 // If the operation is of the wrong type error will be non-nil.
 func expandSizeFromOp(op *PendingOperationEntry) (sizeGB int, e error) {
 	for _, a := range op.Actions {
-		if a.Change == OpExpandVolume {
+		if a.Change == OpExpandVolume || a.Change == OpExpandDirvolume {
 			sizeGB, e = a.ExpandSize()
 			return
 		}
 	}
-	e = fmt.Errorf("no OpExpandVolume action in pending op: %v",
+	e = fmt.Errorf("no OpExpandVolume/OpExpandDirvolume action in pending op: %v",
 		op.Id)
 	return
+}
+
+func dirvolumesFromOp(db wdb.RODB,
+	op *PendingOperationEntry) ([]*DirvolumeEntry, error) {
+
+	dirvolumeEntries := []*DirvolumeEntry{}
+	err := db.View(func(tx *bolt.Tx) error {
+		for _, a := range op.Actions {
+			switch a.Change {
+			case OpAddDirvolume, OpDeleteDirvolume, OpExpandDirvolume:
+				dv, err := NewDirvolumeEntryFromId(tx, a.Id)
+				if err != nil {
+					return err
+				}
+				dirvolumeEntries = append(dirvolumeEntries, dv)
+			}
+		}
+		return nil
+	})
+	return dirvolumeEntries, err
 }

@@ -37,6 +37,8 @@ var (
 	blockVolNameRe = regexp.MustCompile("^[a-zA-Z0-9_-]+$")
 
 	tagNameRe = regexp.MustCompile("^[a-zA-Z0-9_.-]+$")
+
+	dirvolumeNameRe = regexp.MustCompile("^[a-zA-Z0-9_-]+$")
 )
 
 // ValidateUUID is written this way because heketi UUID does not
@@ -46,6 +48,17 @@ func ValidateUUID(value interface{}) error {
 	err := validation.Validate(s, validation.RuneLength(32, 32), is.Hexadecimal)
 	if err != nil {
 		return fmt.Errorf("%v is not a valid UUID", s)
+	}
+	return nil
+}
+
+func ValidateIP(value interface{}) error {
+	s, _ := value.([]string)
+	for _, ip := range s {
+		err := validation.Validate(ip, validation.Required, is.IP)
+		if err != nil {
+			return fmt.Errorf("%v is not a valid IP address", s)
+		}
 	}
 	return nil
 }
@@ -228,6 +241,7 @@ type Cluster struct {
 	Volumes []VolumeInfoResponse `json:"volumes"`
 	//currently BlockVolumes will be used only for metrics
 	BlockVolumes []BlockVolumeInfoResponse `json:"blockvolumes,omitempty"`
+	Dirvolumes   []DirvolumeInfoResponse   `json:"dirvolumes"`
 	Nodes        []NodeInfoResponse        `json:"nodes"`
 	Id           string                    `json:"id"`
 	ClusterFlags
@@ -251,6 +265,8 @@ type ClusterInfoResponse struct {
 	Volumes sort.StringSlice `json:"volumes"`
 	ClusterFlags
 	BlockVolumes sort.StringSlice `json:"blockvolumes"`
+	Dirvolumes   sort.StringSlice `json:"dirvolumes"`
+	ExportDirStr string           `json:"exportdirstr"`
 }
 
 type ClusterListResponse struct {
@@ -590,6 +606,64 @@ func (v *BlockVolumeInfoResponse) String() string {
 	*/
 
 	return s
+}
+
+type DirvolumeCreateRequest struct {
+	// Size in GiB
+	Size      int    `json:"size"`
+	Name      string `json:"name"`
+	ClusterId string `json:"cluster"`
+}
+
+func (dvolCreateRequest DirvolumeCreateRequest) Validate() error {
+	return validation.ValidateStruct(&dvolCreateRequest,
+		validation.Field(&dvolCreateRequest.Size, validation.Required, validation.Min(1)),
+		validation.Field(&dvolCreateRequest.Name, validation.Match(dirvolumeNameRe)),
+		validation.Field(&dvolCreateRequest.ClusterId, validation.By(ValidateUUID)),
+	)
+}
+
+type DirvolumeInfo struct {
+	DirvolumeCreateRequest
+	Id     string `json:"id"`
+	Export struct {
+		IpList []string `json:"iplist"`
+	} `json:"export"`
+}
+
+type DirvolumeInfoResponse struct {
+	DirvolumeInfo
+}
+
+type DirvolumeListResponse struct {
+	Dirvolumes []string `json:"dirvolumes"`
+}
+
+func NewDirvolumeInfoResponse() *DirvolumeInfoResponse {
+
+	info := &DirvolumeInfoResponse{}
+
+	return info
+}
+
+type DirvolumeExpandRequest struct {
+	Size int `json:"expand_size"`
+}
+
+func (dvolExpandReq DirvolumeExpandRequest) Validate() error {
+	return validation.ValidateStruct(&dvolExpandReq,
+		validation.Field(&dvolExpandReq.Size, validation.Required, validation.Min(1)),
+	)
+}
+
+type DirvolumeExportRequest struct {
+	IpList []string `json:"iplist"`
+}
+
+func (dvolExpandReq DirvolumeExportRequest) Validate() error {
+	return validation.ValidateStruct(&dvolExpandReq,
+		validation.Field(&dvolExpandReq.IpList, validation.By(ValidateIP)),
+	)
 }
 
 type OperationsInfo struct {

@@ -51,6 +51,24 @@ func ListCompleteBlockVolumes(tx *bolt.Tx) ([]string, error) {
 	return removeKeysFromList(v, p), nil
 }
 
+// ListCompleteDirvolumes returns a list of dirvolume ID strings for dirvolumes
+// that are not pending.
+func ListCompleteDirvolumes(tx *bolt.Tx) ([]string, error) {
+	p, err := MapPendingDirvolumes(tx)
+	if err != nil {
+		return []string{}, err
+	}
+	v, err := DirvolumeList(tx)
+	if err != nil {
+		return []string{}, err
+	}
+	if len(p) == 0 {
+		// avoid extra copy loop
+		return v, nil
+	}
+	return removeKeysFromList(v, p), nil
+}
+
 // UpdateVolumeInfoComplete updates the given VolumeInfoResponse object so
 // that it only contains references to complete block volumes.
 func UpdateVolumeInfoComplete(tx *bolt.Tx, vi *api.VolumeInfoResponse) error {
@@ -121,6 +139,17 @@ func MapPendingBricks(tx *bolt.Tx) (map[string]string, error) {
 func MapPendingDeviceRemoves(tx *bolt.Tx) (map[string]string, error) {
 	return mapPendingItems(tx, func(op *PendingOperationEntry, a PendingOperationAction) bool {
 		return (a.Change == OpRemoveDevice)
+	})
+}
+
+// MapPendingDirvolumes returns a map of dirvolume-id to pending-op-id or
+// an error if the db cannot be read.
+func MapPendingDirvolumes(tx *bolt.Tx) (map[string]string, error) {
+	return mapPendingItems(tx, func(op *PendingOperationEntry, a PendingOperationAction) bool {
+		t := op.Type
+		c := a.Change
+		return ((t == OperationCreateDirvolume && c == OpAddDirvolume) ||
+			(t == OperationDeleteDirvolume && c == OpDeleteDirvolume))
 	})
 }
 

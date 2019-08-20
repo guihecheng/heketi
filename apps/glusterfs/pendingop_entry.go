@@ -291,6 +291,40 @@ func (p *PendingOperationEntry) RecordRemoveDevice(d *DeviceEntry) {
 	p.Type = OperationRemoveDevice
 }
 
+func (p *PendingOperationEntry) RecordAddDirvolume(dv *DirvolumeEntry) {
+	// track which dirvolume this op is created
+	p.recordChange(OpAddDirvolume, dv.Info.Id)
+	p.Type = OperationCreateDirvolume
+	// link back from "temporary" object to op
+	dv.Pending.Id = p.Id
+}
+
+func (p *PendingOperationEntry) RecordDeleteDirvolume(dv *DirvolumeEntry) {
+	p.recordChange(OpDeleteDirvolume, dv.Info.Id)
+	p.Type = OperationDeleteDirvolume
+	dv.Pending.Id = p.Id
+}
+
+func (p *PendingOperationEntry) RecordExpandDirvolume(dv *DirvolumeEntry, sizeGB int) {
+	p.recordSizeChange(OpExpandDirvolume, dv.Info.Id, sizeGB)
+	p.Type = OperationExpandDirvolume
+}
+
+func (p *PendingOperationEntry) RecordExportDirvolume(dv *DirvolumeEntry) {
+	p.recordChange(OpExportDirvolume, dv.Info.Id)
+	p.Type = OperationExportDirvolume
+}
+
+func (p *PendingOperationEntry) RecordUnexportDirvolume(dv *DirvolumeEntry) {
+	p.recordChange(OpUnexportDirvolume, dv.Info.Id)
+	p.Type = OperationUnexportDirvolume
+}
+
+func (p *PendingOperationEntry) FinalizeDirvolume(dv *DirvolumeEntry) {
+	dv.Pending.Id = ""
+	return
+}
+
 func (p *PendingOperationEntry) ToInfo() api.PendingOperationInfo {
 	return api.PendingOperationInfo{
 		Id:       p.Id,

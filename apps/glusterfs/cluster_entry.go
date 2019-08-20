@@ -170,6 +170,19 @@ func (c *ClusterEntry) BlockVolumeDelete(id string) {
 	c.Info.BlockVolumes = sortedstrings.Delete(c.Info.BlockVolumes, id)
 }
 
+func (c *ClusterEntry) DirvolumeAdd(id string) {
+	c.Info.Dirvolumes = append(c.Info.Dirvolumes, id)
+	c.Info.Dirvolumes.Sort()
+}
+
+func (c *ClusterEntry) DirvolumeDelete(id string) {
+	c.Info.Dirvolumes = sortedstrings.Delete(c.Info.Dirvolumes, id)
+}
+
+func (c *ClusterEntry) DirvolumeCount() int {
+	return len(c.Info.Dirvolumes)
+}
+
 func (c *ClusterEntry) NodeDelete(id string) {
 	c.Info.Nodes = sortedstrings.Delete(c.Info.Nodes, id)
 }

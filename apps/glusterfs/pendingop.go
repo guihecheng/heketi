@@ -36,6 +36,11 @@ const (
 	OperationDeleteBlockVolume
 	OperationRemoveDevice
 	OperationCloneVolume
+	OperationCreateDirvolume
+	OperationDeleteDirvolume
+	OperationExpandDirvolume
+	OperationExportDirvolume
+	OperationUnexportDirvolume
 )
 
 // PendingChangeType identifies what kind of lower-level new item or change
@@ -55,6 +60,11 @@ const (
 	OpCloneVolume
 	OpSnapshotVolume
 	OpAddVolumeClone
+	OpAddDirvolume
+	OpDeleteDirvolume
+	OpExpandDirvolume
+	OpExportDirvolume
+	OpUnexportDirvolume
 )
 
 // PendingOperationAction tracks individual changes to entries within the
@@ -84,7 +94,7 @@ type PendingOperation struct {
 // PendingOperationAction if the change type is correct. If the type is
 // not correct error will be non-nil.
 func (a PendingOperationAction) ExpandSize() (int, error) {
-	if a.Change == OpExpandVolume {
+	if a.Change == OpExpandVolume || a.Change == OpExpandDirvolume {
 		if v, ok := a.Delta.(int); ok {
 			return v, nil
 		}
@@ -113,6 +123,16 @@ func (v PendingOperationType) Name() string {
 		return "remove-device"
 	case OperationCloneVolume:
 		return "clone-volume"
+	case OperationCreateDirvolume:
+		return "create-dirvolume"
+	case OperationDeleteDirvolume:
+		return "delete-dirvolume"
+	case OperationExpandDirvolume:
+		return "expand-dirvolume"
+	case OperationExportDirvolume:
+		return "export-dirvolume"
+	case OperationUnexportDirvolume:
+		return "unexport-dirvolume"
 	}
 	return "unknown"
 }
@@ -142,6 +162,16 @@ func (c PendingChangeType) Name() string {
 		return "Snapshot volume"
 	case OpAddVolumeClone:
 		return "Expand volume to"
+	case OpAddDirvolume:
+		return "Add dirvolume"
+	case OpDeleteDirvolume:
+		return "Delete dirvolume"
+	case OpExpandDirvolume:
+		return "Expand dirvolume"
+	case OpExportDirvolume:
+		return "Export dirvolume"
+	case OpUnexportDirvolume:
+		return "Unexport dirvolume"
 	}
 	return "Unknown"
 }
