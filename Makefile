@@ -108,9 +108,6 @@ clean:
 	rm -rf dist coverage packagecover.out
 	@$(MAKE) -C client/cli/go clean
 
-clean_vendor:
-	rm -rf vendor
-
 $(PACKAGE): all
 	@echo Packaging Binaries...
 	@mkdir -p tmp/$(APP_NAME)
@@ -140,7 +137,7 @@ $(CLIENT_PACKAGE): all
 
 deps_tarball: $(DEPS_TARBALL)
 
-$(DEPS_TARBALL): clean clean_vendor vendor glide.lock
+$(DEPS_TARBALL): clean vendor glide.lock
 	@echo Creating dependency tarball...
 	@mkdir -p $(DIR)/dist/
 	tar -czf $@ -C vendor .
@@ -186,5 +183,5 @@ install:
 
 .PHONY: server client test clean name run version release \
 	linux_arm_dist linux_amd64_dist linux_arm64_dist \
-	heketi clean_vendor deps_tarball all dist \
+	heketi deps_tarball all dist \
 	test-functional install
