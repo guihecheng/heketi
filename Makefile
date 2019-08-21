@@ -84,6 +84,9 @@ endif
 	echo "Installing vendor directory"
 	if [ "$(GLIDE_HOME)" ]; then mkdir -p "$(GLIDE_HOME)"; fi
 	$(GLIDE) install -v
+	@mkdir -p vendor/bitbucket.org/ww
+	@mv vendor/github.com/guihecheng/goautoneg vendor/bitbucket.org/ww/
+	@rmdir vendor/github.com/guihecheng
 
 glide.lock: glide.yaml
 	echo "Glide.yaml has changed, updating glide.lock"
