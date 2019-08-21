@@ -341,3 +341,68 @@ func (es *ExecutorStack) ListBlockVolumes(host string, blockhostingvolume string
 	}
 	return nil, NotSupportedError
 }
+
+func (es *ExecutorStack) DirvolumeCreate(host string, volume string,
+	dirvolume *executors.DirvolumeRequest) (*executors.Dirvolume, error) {
+	for _, e := range es.executors {
+		v, err := e.DirvolumeCreate(host, volume, dirvolume)
+		if err != NotSupportedError {
+			return v, err
+		}
+	}
+	return nil, NotSupportedError
+}
+
+func (es *ExecutorStack) DirvolumeDestroy(host string, volume string,
+	dirvolume *executors.DirvolumeRequest) error {
+	for _, e := range es.executors {
+		err := e.DirvolumeDestroy(host, volume, dirvolume)
+		if err != NotSupportedError {
+			return err
+		}
+	}
+	return NotSupportedError
+}
+
+func (es *ExecutorStack) DirvolumeInfo(host string, volume string,
+	dirvolume string) (*executors.Dirvolume, error) {
+	for _, e := range es.executors {
+		v, err := e.DirvolumeInfo(host, volume, dirvolume)
+		if err != NotSupportedError {
+			return v, err
+		}
+	}
+	return nil, NotSupportedError
+}
+
+func (es *ExecutorStack) DirvolumesInfo(host string, volume string) (*executors.DirvolInfo, error) {
+	for _, e := range es.executors {
+		v, err := e.DirvolumesInfo(host, volume)
+		if err != NotSupportedError {
+			return v, err
+		}
+	}
+	return nil, NotSupportedError
+}
+
+func (es *ExecutorStack) DirvolumeExpand(host string, volume string,
+	dirvolume *executors.DirvolumeRequest) (*executors.Dirvolume, error) {
+	for _, e := range es.executors {
+		v, err := e.DirvolumeExpand(host, volume, dirvolume)
+		if err != NotSupportedError {
+			return v, err
+		}
+	}
+	return nil, NotSupportedError
+}
+
+func (es *ExecutorStack) DirvolumeUpdateExport(host string, volume string,
+	dirvolume *executors.DirvolumeRequest) (*executors.Dirvolume, error) {
+	for _, e := range es.executors {
+		v, err := e.DirvolumeUpdateExport(host, volume, dirvolume)
+		if err != NotSupportedError {
+			return v, err
+		}
+	}
+	return nil, NotSupportedError
+}
