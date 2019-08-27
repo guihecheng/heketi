@@ -368,6 +368,7 @@ func (dv *DirvolumeEntry) NewInfoResponse(tx *bolt.Tx) (*api.DirvolumeInfoRespon
 	info.Name = dv.Info.Name
 	info.Id = dv.Info.Id
 	info.ClusterId = dv.Info.ClusterId
+	info.Export = dv.Info.Export
 
 	return info, nil
 }

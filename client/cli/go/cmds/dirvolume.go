@@ -235,6 +235,7 @@ Name: {{.Name}}
 Size: {{.Size}}
 Dirvolume Id: {{.Id}}
 Cluster Id: {{.ClusterId}}
+Export IPs: {{.Export.IpList}}
 `
 
 func printDirvolumeInfo(dirvolume *api.DirvolumeInfoResponse) {

@@ -243,6 +243,7 @@ var clusterInfoCommand = &cobra.Command{
 			fmt.Fprintf(stdout, "Cluster id: %v\n", info.Id)
 			fmt.Fprintf(stdout, "Nodes:\n%v", strings.Join(info.Nodes, "\n"))
 			fmt.Fprintf(stdout, "\nVolumes:\n%v", strings.Join(info.Volumes, "\n"))
+			fmt.Fprintf(stdout, "\nDirvolumes:\n%v", strings.Join(info.Dirvolumes, "\n"))
 			fmt.Fprintf(stdout, "\nBlock: %v\n", info.Block)
 			fmt.Fprintf(stdout, "\nFile: %v\n", info.File)
 		}
