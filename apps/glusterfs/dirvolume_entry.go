@@ -424,3 +424,27 @@ func (dv *DirvolumeEntry) unexportDirvolume(db wdb.RODB,
 	}
 	return nil
 }
+
+func (dv *DirvolumeEntry) statDirvolume(db wdb.RODB,
+	executor executors.Executor) (*api.DirvolumeStatsResponse, error) {
+
+	godbc.Require(db != nil)
+
+	_, host, err := dv.createDirvolumeRequest(db)
+	if err != nil {
+		return nil, err
+	}
+
+	stats := api.NewDirvolumeStatsResponse()
+	var edv *executors.Dirvolume
+	if edv, err = executor.DirvolumeStats(host, DirPoolVolumeName, dv.Info.Name); err != nil {
+		return nil, err
+	}
+
+	stats.Id = dv.Info.Id
+	stats.TotalSize = edv.TotalSize
+	stats.UsedSize = edv.UsedSize
+	stats.AvailSize = edv.AvailSize
+
+	return stats, nil
+}

@@ -39,6 +39,12 @@ def main():
         print("Dirvolume info failed")
         return
 
+    # Dirvolume Stats
+    stats = client.dirvolume_stats(dv['id'])
+    if stats == None:
+        print("Dirvolume stat failed")
+        return
+
     # Dirvolume list
     list_resp = client.dirvolume_list()
     if list_resp == None:

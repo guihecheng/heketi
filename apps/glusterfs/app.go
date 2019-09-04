@@ -662,6 +662,11 @@ func (a *App) SetRoutes(router *mux.Router) error {
 			Method:      "POST",
 			Pattern:     "/dirvolumes/{id:[A-Fa-f0-9]+}/unexport",
 			HandlerFunc: a.DirvolumeUnexport},
+		rest.Route{
+			Name:        "DirvolumeStats",
+			Method:      "GET",
+			Pattern:     "/dirvolumes/{id:[A-Fa-f0-9]+}/stats",
+			HandlerFunc: a.DirvolumeStats},
 
 		// Backup
 		rest.Route{

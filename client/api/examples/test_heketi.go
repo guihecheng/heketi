@@ -56,6 +56,14 @@ func main() {
 	}
 	fmt.Printf("Dirvolume Info Name: %v\n", info.Name)
 
+	// Dirvolume Stats
+	stats, err := heketi.DirvolumeStats(dvid)
+	if err != nil {
+		fmt.Printf("Stat dirvolume failed - %v\n", err)
+		return
+	}
+	fmt.Printf("Dirvolume Stat Used: %v\n", stats.UsedSize)
+
 	// Dirvolume List
 	listResp, err := heketi.DirvolumeList()
 	if err != nil {

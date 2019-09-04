@@ -44,7 +44,7 @@ type Executor interface {
 	ListBlockVolumes(host string, blockhostingvolume string) ([]string, error)
 	DirvolumeCreate(host string, volume string, dirvolume *DirvolumeRequest) (*Dirvolume, error)
 	DirvolumeDestroy(host string, volume string, dirvolume *DirvolumeRequest) error
-	DirvolumeInfo(host string, volume string, dirvolume string) (*Dirvolume, error)
+	DirvolumeStats(host string, volume string, dirvolume string) (*Dirvolume, error)
 	DirvolumesInfo(host string, volume string) (*DirvolInfo, error)
 	DirvolumeExpand(host string, volume string, dirvolume *DirvolumeRequest) (*Dirvolume, error)
 	DirvolumeUpdateExport(host string, volume string, dirvolume *DirvolumeRequest) (*Dirvolume, error)

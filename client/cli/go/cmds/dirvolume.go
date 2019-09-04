@@ -30,6 +30,7 @@ func init() {
 	dirvolumeCommand.AddCommand(dirvolumeExpandCommand)
 	dirvolumeCommand.AddCommand(dirvolumeExportCommand)
 	dirvolumeCommand.AddCommand(dirvolumeUnexportCommand)
+	dirvolumeCommand.AddCommand(dirvolumeStatsCommand)
 
 	dirvolumeCreateCommand.Flags().IntVar(&dv_size, "size", 0,
 		"\n\tSize of dirvolume in GiB")
@@ -60,6 +61,7 @@ func init() {
 	dirvolumeListCommand.SilenceUsage = true
 	dirvolumeExportCommand.SilenceUsage = true
 	dirvolumeUnexportCommand.SilenceUsage = true
+	dirvolumeStatsCommand.SilenceUsage = true
 }
 
 var dirvolumeCommand = &cobra.Command{
@@ -229,7 +231,7 @@ var dirvolumeListCommand = &cobra.Command{
 	},
 }
 
-var dirvolumeTemplate = `
+var dirvolumeInfoTemplate = `
 {{- /* remove whitespace */ -}}
 Name: {{.Name}}
 Size: {{.Size}}
@@ -239,7 +241,7 @@ Export IPs: {{.Export.IpList}}
 `
 
 func printDirvolumeInfo(dirvolume *api.DirvolumeInfoResponse) {
-	t, err := template.New("dirvolume").Parse(dirvolumeTemplate)
+	t, err := template.New("dirvolumeInfo").Parse(dirvolumeInfoTemplate)
 	if err != nil {
 		panic(err)
 	}
@@ -384,5 +386,64 @@ var dirvolumeUnexportCommand = &cobra.Command{
 			printDirvolumeInfo(dirvolume)
 		}
 		return nil
+	},
+}
+
+var dirvolumeStatsTemplate = `
+{{- /* remove whitespace */ -}}
+Dirvolume Id: {{.Id}}
+TotalSize: {{.TotalSize}}
+UsedSize: {{.UsedSize}}
+AvailSize: {{.AvailSize}}
+`
+
+func printDirvolumeStats(dirvolume *api.DirvolumeStatsResponse) {
+	t, err := template.New("dirvolumeStats").Parse(dirvolumeStatsTemplate)
+	if err != nil {
+		panic(err)
+	}
+	err = t.Execute(os.Stdout, dirvolume)
+	if err != nil {
+		panic(err)
+	}
+}
+
+var dirvolumeStatsCommand = &cobra.Command{
+	Use:     "stats",
+	Short:   "Retrieves stats(usage) about the dirvolume",
+	Long:    "Retrieves stats(usage) about the dirvolume",
+	Example: "  $ heketi-cli volume stats dirvolume-id",
+	RunE: func(cmd *cobra.Command, args []string) error {
+		//ensure proper number of args
+		s := cmd.Flags().Args()
+		if len(s) < 1 {
+			return errors.New("Dirvolume id missing")
+		}
+
+		// Set dirvolume id
+		dirvolumeId := cmd.Flags().Arg(0)
+
+		// Create a client to talk to Heketi
+		heketi, err := newHeketiClient()
+		if err != nil {
+			return err
+		}
+
+		info, err := heketi.DirvolumeStats(dirvolumeId)
+		if err != nil {
+			return err
+		}
+
+		if options.Json {
+			data, err := json.Marshal(info)
+			if err != nil {
+				return err
+			}
+			fmt.Fprintf(stdout, string(data))
+		} else {
+			printDirvolumeStats(info)
+		}
+		return nil
+
 	},
 }

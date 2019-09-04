@@ -364,10 +364,10 @@ func (es *ExecutorStack) DirvolumeDestroy(host string, volume string,
 	return NotSupportedError
 }
 
-func (es *ExecutorStack) DirvolumeInfo(host string, volume string,
+func (es *ExecutorStack) DirvolumeStats(host string, volume string,
 	dirvolume string) (*executors.Dirvolume, error) {
 	for _, e := range es.executors {
-		v, err := e.DirvolumeInfo(host, volume, dirvolume)
+		v, err := e.DirvolumeStats(host, volume, dirvolume)
 		if err != NotSupportedError {
 			return v, err
 		}

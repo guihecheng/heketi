@@ -666,6 +666,20 @@ func (dvolExpandReq DirvolumeExportRequest) Validate() error {
 	)
 }
 
+type DirvolumeStatsResponse struct {
+	Id        string `json:"id"`
+	TotalSize int    `json:"total"`
+	UsedSize  int    `json:"used"`
+	AvailSize int    `json:"avail"`
+}
+
+func NewDirvolumeStatsResponse() *DirvolumeStatsResponse {
+
+	stats := &DirvolumeStatsResponse{}
+
+	return stats
+}
+
 type OperationsInfo struct {
 	Total    uint64 `json:"total"`
 	InFlight uint64 `json:"in_flight"`

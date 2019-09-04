@@ -110,7 +110,7 @@ func newMockBase() *mockexec.MockExecutor {
 	m.MockDirvolumeDestroy = func(host string, volume string, dirvolume *executors.DirvolumeRequest) error {
 		return NotSupportedError
 	}
-	m.MockDirvolumeInfo = func(host string, volume string, dirvolume string) (*executors.Dirvolume, error) {
+	m.MockDirvolumeStats = func(host string, volume string, dirvolume string) (*executors.Dirvolume, error) {
 		return nil, NotSupportedError
 	}
 	m.MockDirvolumesInfo = func(host string, volume string) (*executors.DirvolInfo, error) {

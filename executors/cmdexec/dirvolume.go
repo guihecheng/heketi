@@ -93,7 +93,7 @@ func (s *CmdExecutor) DirvolumeDestroy(host string, volume string,
 	return nil
 }
 
-func (s *CmdExecutor) DirvolumeInfo(host string, volume string,
+func (s *CmdExecutor) DirvolumeStats(host string, volume string,
 	dirvolume string) (*executors.Dirvolume, error) {
 
 	godbc.Require(host != "")

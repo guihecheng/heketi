@@ -298,3 +298,39 @@ func (a *App) DirvolumeUnexport(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
+
+func (a *App) DirvolumeStats(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	id := vars["id"]
+
+	var stats *api.DirvolumeStatsResponse
+	var dv *DirvolumeEntry
+	err := a.db.View(func(tx *bolt.Tx) error {
+		entry, err := NewDirvolumeEntryFromId(tx, id)
+		if err == ErrNotFound {
+			http.Error(w, "Id not found", http.StatusNotFound)
+			return ErrNotFound
+		} else if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return err
+		}
+
+		dv = entry
+
+		return nil
+	})
+	if err != nil {
+		return
+	}
+
+	stats, err = dv.statDirvolume(a.db, a.executor)
+	if err != nil {
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	w.WriteHeader(http.StatusOK)
+	if err := json.NewEncoder(w).Encode(stats); err != nil {
+		panic(err)
+	}
+}

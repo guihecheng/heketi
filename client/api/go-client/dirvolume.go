@@ -326,3 +326,37 @@ func (c *Client) DirvolumeUnexport(id string, request *api.DirvolumeExportReques
 
 	return &dirvolume, nil
 }
+
+func (c *Client) DirvolumeStats(id string) (*api.DirvolumeStatsResponse, error) {
+
+	// Create request
+	req, err := http.NewRequest("GET", c.host+"/dirvolumes/"+id+"/stats", nil)
+	if err != nil {
+		return nil, err
+	}
+
+	// Set token
+	err = c.setToken(req)
+	if err != nil {
+		return nil, err
+	}
+
+	// Get info
+	r, err := c.do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer r.Body.Close()
+	if r.StatusCode != http.StatusOK {
+		return nil, utils.GetErrorFromResponse(r)
+	}
+
+	// Read JSON response
+	var dirvolume api.DirvolumeStatsResponse
+	err = utils.GetJsonFromResponse(r, &dirvolume)
+	if err != nil {
+		return nil, err
+	}
+
+	return &dirvolume, nil
+}
