@@ -2,7 +2,7 @@ import requests
 import heketi
 
 TEST_ADMIN_KEY = "My Secret"
-TEST_SERVER = "http://localhost:8080"
+TEST_SERVER = "http://127.0.0.1:8080"
 TEST_POLL_DELAY = 0.2
 
 

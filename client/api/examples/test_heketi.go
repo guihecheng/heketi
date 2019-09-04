@@ -8,9 +8,9 @@ import (
 )
 
 func main() {
-	url := "http://localhost:8080"
-	user := "My user"
-	key := "My key"
+	url := "http://127.0.0.1:8080"
+	user := "admin"
+	key := "My Secret"
 
 	// Create a client
 	heketi := client.NewClient(url, user, key)
