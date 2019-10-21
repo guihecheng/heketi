@@ -20,9 +20,8 @@ func appendExport(dvName string, exportDirStr string) string {
 	if len(exportDirStr) > 0 {
 		exportDirStr += ","
 	}
-	// If no IPs specified, default to allow access to all,
-	// So we only allow access to localhost by default
-	exportDirStr += "/" + dvName + "(127.0.0.1)"
+	// If no IPs specified, default to allow access to all
+	exportDirStr += "/" + dvName
 	return exportDirStr
 }
 
@@ -39,29 +38,18 @@ func deleteExport(dvName string, exportDirStr string) string {
 	return out
 }
 
-func appendIpListToExport(dvName string, ipList []string, exportDirStr string) string {
+func updateIpListToExport(dvName string, ipList []string, exportDirStr string) string {
 	out := ""
 	for _, entry := range strings.Split(exportDirStr, ",") {
 		if strings.Contains(entry, dvName) {
 			newEntry := "/" + dvName
 
-			i := strings.Index(entry, "(")
 			newIpListStr := ""
-			if i > -1 {
-				newIpListStr = entry[i+1 : len(entry)-1]
-			}
-
-			exists := make(map[string]bool)
-			for _, ip := range strings.Split(newIpListStr, "|") {
-				exists[ip] = true
-			}
 			for _, ip := range ipList {
-				if !exists[ip] {
-					if len(newIpListStr) > 0 {
-						newIpListStr += "|"
-					}
-					newIpListStr += ip
+				if len(newIpListStr) > 0 {
+					newIpListStr += "|"
 				}
+				newIpListStr += ip
 			}
 
 			if len(newIpListStr) > 0 {
@@ -399,7 +387,7 @@ func (dv *DirvolumeEntry) exportDirvolume(db wdb.RODB,
 		return err
 	}
 
-	dvr.ExportDirStr = appendIpListToExport(dv.Info.Name, dv.Info.Export.IpList, dvr.ExportDirStr)
+	dvr.ExportDirStr = updateIpListToExport(dv.Info.Name, dv.Info.Export.IpList, dvr.ExportDirStr)
 
 	if _, err := executor.DirvolumeUpdateExport(host, DirPoolVolumeName, dvr); err != nil {
 		return err

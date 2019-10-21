@@ -424,18 +424,7 @@ func (dvx *DirvolumeExportOperation) ResourceUrl() string {
 
 func (dvx *DirvolumeExportOperation) Build() error {
 	return dvx.db.Update(func(tx *bolt.Tx) error {
-		newIpList := make([]string, 0)
-		exists := make(map[string]bool)
-		for _, ip := range dvx.dvol.Info.Export.IpList {
-			exists[ip] = true
-			newIpList = append(newIpList, ip)
-		}
-		for _, ip := range dvx.IpList {
-			if !exists[ip] {
-				newIpList = append(newIpList, ip)
-			}
-		}
-		dvx.dvol.Info.Export.IpList = newIpList
+		dvx.dvol.Info.Export.IpList = dvx.IpList
 		dvx.op.RecordExportDirvolume(dvx.dvol)
 		if e := dvx.op.Save(tx); e != nil {
 			return e

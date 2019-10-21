@@ -216,12 +216,6 @@ func (a *App) DirvolumeExport(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if len(msg.IpList) == 0 {
-		http.Error(w, "Empty IP list", http.StatusBadRequest)
-		logger.LogError("Empty IP list")
-		return
-	}
-
 	vars := mux.Vars(r)
 	id := vars["id"]
 

@@ -45,7 +45,7 @@ func init() {
 		"\n\tId of dirvolume to expand")
 
 	dirvolumeExportCommand.Flags().StringVar(&iplist, "iplist", "",
-		"\n\twhite list IPs that should have access")
+		"\n\tOptional: white list IPs that should have access, empty means clear all")
 	dirvolumeExportCommand.Flags().StringVar(&dv_id, "dirvolume", "",
 		"\n\tId of dirvolume to export")
 
@@ -305,10 +305,6 @@ var dirvolumeExportCommand = &cobra.Command{
     $ heketi-cli dirvolume export --dirvolume=60d46d518074b13a04ce1022c8c7193c --iplist=10.0.0.1,10.0.0.2
 `,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		// Check empty list
-		if len(iplist) == 0 {
-			return errors.New("Missing IP(s) to allow access")
-		}
 
 		if dv_id == "" {
 			return errors.New("Missing dirvolume id")
@@ -316,7 +312,9 @@ var dirvolumeExportCommand = &cobra.Command{
 
 		// Create request
 		req := &api.DirvolumeExportRequest{}
-		req.IpList = strings.Split(iplist, ",")
+		if len(iplist) > 0 {
+			req.IpList = strings.Split(iplist, ",")
+		}
 
 		// Create client
 		heketi, err := newHeketiClient()
