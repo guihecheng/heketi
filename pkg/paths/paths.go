@@ -16,9 +16,8 @@ import (
 )
 
 const (
-	brickMountPointRoot  = "/var/lib/heketi/mounts"
-	deviceMapperRoot     = "/dev/mapper"
-	volumeMountPointRoot = "/var/lib/heketi/volumes"
+	brickMountPointRoot = "/var/lib/heketi/mounts"
+	deviceMapperRoot    = "/dev/mapper"
 )
 
 // VgIdToName return the string to be used for the name of
@@ -97,10 +96,4 @@ func BrickDevNode(vgId, brickId string) string {
 // lv name used by the gluster snapshot/clone process.
 func VolumeIdToCloneLv(gvolId string) string {
 	return strings.Replace(gvolId, "-", "", -1) + "_0"
-}
-
-// VolumeMountPoint returns the path of a directory
-// where a volume is to be mounted.
-func VolumeMountPoint(volume string) string {
-	return path.Join(volumeMountPointRoot, volume)
 }

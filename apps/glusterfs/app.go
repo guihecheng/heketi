@@ -465,6 +465,10 @@ func (a *App) setDirSettings() {
 		DirPoolVolumeName = a.conf.DirPoolVolumeName
 	}
 
+	if a.conf.DirPoolVolumeMountpoint != "" {
+		logger.Info("Dir: Dir Pool Volume Mountpoint: %v", a.conf.DirPoolVolumeMountpoint)
+		DirPoolVolumeMountpoint = a.conf.DirPoolVolumeMountpoint
+	}
 }
 
 // Register Routes

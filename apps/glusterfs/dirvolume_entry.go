@@ -210,7 +210,7 @@ func (dv *DirvolumeEntry) createDirvolume(db wdb.RODB,
 		return err
 	}
 
-	if _, err := executor.DirvolumeCreate(host, DirPoolVolumeName, dvr); err != nil {
+	if _, err := executor.DirvolumeCreate(host, DirPoolVolumeName, DirPoolVolumeMountpoint, dvr); err != nil {
 		return err
 	}
 	return nil
@@ -324,7 +324,7 @@ func (dv *DirvolumeEntry) destroyDirvolume(db wdb.RODB,
 
 	dvr.ExportDirStr = deleteExport(dv.Info.Name, dvr.ExportDirStr)
 
-	if err := executor.DirvolumeDestroy(host, DirPoolVolumeName, dvr); err != nil {
+	if err := executor.DirvolumeDestroy(host, DirPoolVolumeName, DirPoolVolumeMountpoint, dvr); err != nil {
 		return err
 	}
 	return nil

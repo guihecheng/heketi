@@ -402,27 +402,27 @@ func TestDirvolumeCreate(t *testing.T) {
 
 	br := &executors.DirvolumeRequest{}
 
-	_, err := es.DirvolumeCreate("foo", "v", br)
+	_, err := es.DirvolumeCreate("foo", "v", "m", br)
 	tests.Assert(t, err == nil, "expected err == nil, got:", err)
 
-	m2.MockDirvolumeCreate = func(host string, volume string, brick *executors.DirvolumeRequest) (*executors.Dirvolume, error) {
+	m2.MockDirvolumeCreate = func(host string, volume string, mountpoint string, brick *executors.DirvolumeRequest) (*executors.Dirvolume, error) {
 		return nil, fmt.Errorf("E2")
 	}
 
-	_, err = es.DirvolumeCreate("foo", "v", br)
+	_, err = es.DirvolumeCreate("foo", "v", "m", br)
 	tests.Assert(t, err == nil, "expected err == nil, got:", err)
 
-	m1.MockDirvolumeCreate = func(host string, volume string, brick *executors.DirvolumeRequest) (*executors.Dirvolume, error) {
+	m1.MockDirvolumeCreate = func(host string, volume string, mountpoint string, brick *executors.DirvolumeRequest) (*executors.Dirvolume, error) {
 		return nil, NotSupportedError
 	}
 
-	_, err = es.DirvolumeCreate("foo", "v", br)
+	_, err = es.DirvolumeCreate("foo", "v", "m", br)
 	tests.Assert(t, err.Error() == "E2", "expected err == E2, got:", err)
 
-	m2.MockDirvolumeCreate = func(host string, volume string, brick *executors.DirvolumeRequest) (*executors.Dirvolume, error) {
+	m2.MockDirvolumeCreate = func(host string, volume string, mountpoint string, brick *executors.DirvolumeRequest) (*executors.Dirvolume, error) {
 		return nil, NotSupportedError
 	}
-	_, err = es.DirvolumeCreate("foo", "v", br)
+	_, err = es.DirvolumeCreate("foo", "v", "m", br)
 	tests.Assert(t, err == NotSupportedError, "expected err == NotSupportedError, got:", err)
 }
 
@@ -435,27 +435,27 @@ func TestDirvolumeDestroy(t *testing.T) {
 
 	br := &executors.DirvolumeRequest{}
 
-	err := es.DirvolumeDestroy("foo", "v", br)
+	err := es.DirvolumeDestroy("foo", "v", "m", br)
 	tests.Assert(t, err == nil, "expected err == nil, got:", err)
 
-	m2.MockDirvolumeDestroy = func(h, v string, dv string) error {
+	m2.MockDirvolumeDestroy = func(h, v string, m string, dv string) error {
 		return fmt.Errorf("E2")
 	}
 
-	err = es.DirvolumeDestroy("foo", "v", br)
+	err = es.DirvolumeDestroy("foo", "v", "m", br)
 	tests.Assert(t, err == nil, "expected err == nil, got:", err)
 
-	m1.MockDirvolumeDestroy = func(h, v string, dv string) error {
+	m1.MockDirvolumeDestroy = func(h, v string, m string, dv string) error {
 		return NotSupportedError
 	}
 
-	err = es.DirvolumeDestroy("foo", "v", br)
+	err = es.DirvolumeDestroy("foo", "v", "m", br)
 	tests.Assert(t, err.Error() == "E2", "expected err == E2, got:", err)
 
-	m2.MockDirvolumeDestroy = func(h, v string, dv string) error {
+	m2.MockDirvolumeDestroy = func(h, v string, m string, dv string) error {
 		return NotSupportedError
 	}
-	err = es.DirvolumeDestroy("foo", "v", br)
+	err = es.DirvolumeDestroy("foo", "v", "m", br)
 	tests.Assert(t, err == NotSupportedError, "expected err == NotSupportedError, got:", err)
 }
 

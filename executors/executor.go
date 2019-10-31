@@ -42,8 +42,8 @@ type Executor interface {
 	LVS(host string) (*LVSCommandOutput, error)
 	GetBrickMountStatus(host string) (*BricksMountStatus, error)
 	ListBlockVolumes(host string, blockhostingvolume string) ([]string, error)
-	DirvolumeCreate(host string, volume string, dirvolume *DirvolumeRequest) (*Dirvolume, error)
-	DirvolumeDestroy(host string, volume string, dirvolume *DirvolumeRequest) error
+	DirvolumeCreate(host string, volume string, mountpoint string, dirvolume *DirvolumeRequest) (*Dirvolume, error)
+	DirvolumeDestroy(host string, volume string, mountpoint string, dirvolume *DirvolumeRequest) error
 	DirvolumeStats(host string, volume string, dirvolume string) (*Dirvolume, error)
 	DirvolumesInfo(host string, volume string) (*DirvolInfo, error)
 	DirvolumeExpand(host string, volume string, dirvolume *DirvolumeRequest) (*Dirvolume, error)

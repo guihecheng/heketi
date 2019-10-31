@@ -115,6 +115,9 @@
     "post_request_volume_options": "",
 
     "_dir_pool_volume_name": "The backend existing volume for dirvolumes",
-    "dir_pool_volume_name": "heketiDirPoolVolume"
+    "dir_pool_volume_name": "heketiDirPoolVolume",
+
+    "_dir_pool_volume_mountpoint": "The mount point of dir_pool_volume_name",
+    "dir_pool_volume_mountpoint": "/var/lib/heketi/volumes"
   }
 }

@@ -57,5 +57,6 @@ type GlusterFSConfig struct {
 	RetryLimits RetryLimitConfig `json:"operation_retry_limits"`
 
 	// dir settings
-	DirPoolVolumeName string `json:"dir_pool_volume_name"`
+	DirPoolVolumeName       string `json:"dir_pool_volume_name"`
+	DirPoolVolumeMountpoint string `json:"dir_pool_volume_mountpoint"`
 }

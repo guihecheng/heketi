@@ -1,5 +1,6 @@
 package glusterfs
 
 var (
-	DirPoolVolumeName = "heketiDirPoolVolume"
+	DirPoolVolumeName       = "heketiDirPoolVolume"
+	DirPoolVolumeMountpoint = "/var/lib/heketi/volumes"
 )

@@ -342,10 +342,10 @@ func (es *ExecutorStack) ListBlockVolumes(host string, blockhostingvolume string
 	return nil, NotSupportedError
 }
 
-func (es *ExecutorStack) DirvolumeCreate(host string, volume string,
+func (es *ExecutorStack) DirvolumeCreate(host string, volume string, mountpoint string,
 	dirvolume *executors.DirvolumeRequest) (*executors.Dirvolume, error) {
 	for _, e := range es.executors {
-		v, err := e.DirvolumeCreate(host, volume, dirvolume)
+		v, err := e.DirvolumeCreate(host, volume, mountpoint, dirvolume)
 		if err != NotSupportedError {
 			return v, err
 		}
@@ -353,10 +353,10 @@ func (es *ExecutorStack) DirvolumeCreate(host string, volume string,
 	return nil, NotSupportedError
 }
 
-func (es *ExecutorStack) DirvolumeDestroy(host string, volume string,
+func (es *ExecutorStack) DirvolumeDestroy(host string, volume string, mountpoint string,
 	dirvolume *executors.DirvolumeRequest) error {
 	for _, e := range es.executors {
-		err := e.DirvolumeDestroy(host, volume, dirvolume)
+		err := e.DirvolumeDestroy(host, volume, mountpoint, dirvolume)
 		if err != NotSupportedError {
 			return err
 		}

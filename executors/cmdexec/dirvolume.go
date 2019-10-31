@@ -7,34 +7,19 @@ import (
 	"github.com/lpabon/godbc"
 
 	"github.com/heketi/heketi/executors"
-	"github.com/heketi/heketi/pkg/paths"
 	rex "github.com/heketi/heketi/pkg/remoteexec"
 )
 
-func (s *CmdExecutor) DirvolumeCreate(host string, volume string,
+func (s *CmdExecutor) DirvolumeCreate(host string, volume string, mountpoint string,
 	dirvolume *executors.DirvolumeRequest) (*executors.Dirvolume, error) {
 
 	godbc.Require(host != "")
 	godbc.Require(volume != "")
+	godbc.Require(mountpoint != "")
 	godbc.Require(dirvolume != nil)
 
-	mountPath := paths.VolumeMountPoint(volume)
-
 	cmds := []string{
-
-		fmt.Sprintf("mkdir -p %v", mountPath),
-
-		fmt.Sprintf("mount -t glusterfs %v:/%v %v", host, volume, mountPath),
-
-		fmt.Sprintf("mkdir -p %v/%v", mountPath, dirvolume.Name),
-
-		fmt.Sprintf("%v volume quota %v limit-usage /%v %vGB",
-			s.glusterCommand(), volume, dirvolume.Name, dirvolume.Size),
-
-		fmt.Sprintf("umount %v", mountPath),
-
-		fmt.Sprintf("%v volume set %v export-dir \"%v\"",
-			s.glusterCommand(), volume, dirvolume.ExportDirStr),
+		fmt.Sprintf("findmnt %v/%v", mountpoint, volume),
 	}
 
 	err := rex.AnyError(s.RemoteExecutor.ExecCommands(host, cmds,
@@ -43,33 +28,46 @@ func (s *CmdExecutor) DirvolumeCreate(host string, volume string,
 		return nil, err
 	}
 
+	cmds = []string{
+
+		fmt.Sprintf("mkdir -p %v/%v/%v", mountpoint, volume, dirvolume.Name),
+
+		fmt.Sprintf("%v volume quota %v limit-usage /%v %vGB",
+			s.glusterCommand(), volume, dirvolume.Name, dirvolume.Size),
+
+		fmt.Sprintf("%v volume set %v export-dir \"%v\"",
+			s.glusterCommand(), volume, dirvolume.ExportDirStr),
+	}
+
+	err = rex.AnyError(s.RemoteExecutor.ExecCommands(host, cmds,
+		s.GlusterCliExecTimeout()))
+	if err != nil {
+		return nil, err
+	}
+
 	return &executors.Dirvolume{}, nil
 }
 
-func (s *CmdExecutor) DirvolumeDestroy(host string, volume string,
+func (s *CmdExecutor) DirvolumeDestroy(host string, volume string, mountpoint string,
 	dirvolume *executors.DirvolumeRequest) error {
 
 	godbc.Require(host != "")
 	godbc.Require(volume != "")
+	godbc.Require(mountpoint != "")
 	godbc.Require(dirvolume != nil)
 
-	mountPath := paths.VolumeMountPoint(volume)
-
 	cmds := []string{
-		fmt.Sprintf("mount -t glusterfs %v:/%v %v", host, volume, mountPath),
+		fmt.Sprintf("findmnt %v/%v", mountpoint, volume),
 	}
 
 	err := rex.AnyError(s.RemoteExecutor.ExecCommands(host, cmds,
 		s.GlusterCliExecTimeout()))
 	if err != nil {
-		logger.LogError("Unable to mount volume %v: %v", volume, err)
+		return err
 	}
 
 	cmds = []string{
-
-		fmt.Sprintf("rm -rf %v/%v", mountPath, dirvolume.Name),
-
-		fmt.Sprintf("umount %v", mountPath),
+		fmt.Sprintf("rm -rf %v/%v/%v", mountpoint, volume, dirvolume.Name),
 	}
 
 	exportCmd := ""
@@ -165,18 +163,9 @@ func (s *CmdExecutor) DirvolumeExpand(host string, volume string,
 	godbc.Require(volume != "")
 	godbc.Require(dirvolume != nil)
 
-	mountPath := paths.VolumeMountPoint(volume)
-
 	cmds := []string{
-
-		fmt.Sprintf("mkdir -p %v", mountPath),
-
-		fmt.Sprintf("mount -t glusterfs %v:/%v %v", host, volume, mountPath),
-
 		fmt.Sprintf("%v volume quota %v limit-usage /%v %vGB",
 			s.glusterCommand(), volume, dirvolume.Name, dirvolume.Size),
-
-		fmt.Sprintf("umount %v", mountPath),
 	}
 
 	err := rex.AnyError(s.RemoteExecutor.ExecCommands(host, cmds,
