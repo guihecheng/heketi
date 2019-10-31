@@ -23,7 +23,7 @@ func NewDirvolumeCreateOperation(
 			db: db,
 			op: NewPendingOperationEntry(NEW_ID),
 		},
-		maxRetries: VOLUME_MAX_RETRIES,
+		maxRetries: DIRVOLUME_MAX_RETRIES,
 		dvol:       dvol,
 	}
 }
@@ -46,7 +46,7 @@ func loadDirvolumeCreateOperation(
 			db: db,
 			op: p,
 		},
-		maxRetries: VOLUME_MAX_RETRIES,
+		maxRetries: DIRVOLUME_MAX_RETRIES,
 		dvol:       dvols[0],
 	}, nil
 }
@@ -124,8 +124,8 @@ func (dvc *DirvolumeCreateOperation) CleanDone() error {
 
 type DirvolumeDeleteOperation struct {
 	OperationManager
-	noRetriesOperation
-	dvol *DirvolumeEntry
+	dvol       *DirvolumeEntry
+	maxRetries int
 }
 
 func NewDirvolumeDeleteOperation(
@@ -136,7 +136,8 @@ func NewDirvolumeDeleteOperation(
 			db: db,
 			op: NewPendingOperationEntry(NEW_ID),
 		},
-		dvol: dvol,
+		maxRetries: DIRVOLUME_MAX_RETRIES,
+		dvol:       dvol,
 	}
 }
 
@@ -158,7 +159,8 @@ func loadDirvolumeDeleteOperation(
 			db: db,
 			op: p,
 		},
-		dvol: dvols[0],
+		maxRetries: DIRVOLUME_MAX_RETRIES,
+		dvol:       dvols[0],
 	}, nil
 }
 
@@ -168,6 +170,10 @@ func (dvd *DirvolumeDeleteOperation) Label() string {
 
 func (dvd *DirvolumeDeleteOperation) ResourceUrl() string {
 	return ""
+}
+
+func (dvd *DirvolumeDeleteOperation) MaxRetries() int {
+	return dvd.maxRetries
 }
 
 func (dvd *DirvolumeDeleteOperation) Build() error {
@@ -276,7 +282,7 @@ func expungeDirvolumeWithOp(
 
 type DirvolumeExpandOperation struct {
 	OperationManager
-	noRetriesOperation
+	maxRetries int
 	dvol       *DirvolumeEntry
 	ExpandSize int
 }
@@ -289,6 +295,7 @@ func NewDirvolumeExpandOperation(
 			db: db,
 			op: NewPendingOperationEntry(NEW_ID),
 		},
+		maxRetries: DIRVOLUME_MAX_RETRIES,
 		dvol:       dvol,
 		ExpandSize: sizeGB,
 	}
@@ -312,7 +319,8 @@ func loadDirvolumeExpandOperation(
 			db: db,
 			op: p,
 		},
-		dvol: dvols[0],
+		maxRetries: DIRVOLUME_MAX_RETRIES,
+		dvol:       dvols[0],
 	}, nil
 }
 
@@ -322,6 +330,10 @@ func (dve *DirvolumeExpandOperation) Label() string {
 
 func (dve *DirvolumeExpandOperation) ResourceUrl() string {
 	return fmt.Sprintf("/dirvolumes/%v", dve.dvol.Info.Id)
+}
+
+func (dve *DirvolumeExpandOperation) MaxRetries() int {
+	return dve.maxRetries
 }
 
 func (dve *DirvolumeExpandOperation) Build() error {
@@ -374,9 +386,9 @@ func (dve *DirvolumeExpandOperation) CleanDone() error {
 
 type DirvolumeExportOperation struct {
 	OperationManager
-	noRetriesOperation
-	dvol   *DirvolumeEntry
-	IpList []string
+	maxRetries int
+	dvol       *DirvolumeEntry
+	IpList     []string
 }
 
 func NewDirvolumeExportOperation(
@@ -387,8 +399,9 @@ func NewDirvolumeExportOperation(
 			db: db,
 			op: NewPendingOperationEntry(NEW_ID),
 		},
-		dvol:   dvol,
-		IpList: ipList,
+		maxRetries: DIRVOLUME_MAX_RETRIES,
+		dvol:       dvol,
+		IpList:     ipList,
 	}
 }
 
@@ -410,7 +423,8 @@ func loadDirvolumeExportOperation(
 			db: db,
 			op: p,
 		},
-		dvol: dvols[0],
+		maxRetries: DIRVOLUME_MAX_RETRIES,
+		dvol:       dvols[0],
 	}, nil
 }
 
@@ -420,6 +434,10 @@ func (dvx *DirvolumeExportOperation) Label() string {
 
 func (dvx *DirvolumeExportOperation) ResourceUrl() string {
 	return fmt.Sprintf("/dirvolumes/%v", dvx.dvol.Info.Id)
+}
+
+func (dvx *DirvolumeExportOperation) MaxRetries() int {
+	return dvx.maxRetries
 }
 
 func (dvx *DirvolumeExportOperation) Build() error {
@@ -472,9 +490,9 @@ func (dvx *DirvolumeExportOperation) CleanDone() error {
 
 type DirvolumeUnexportOperation struct {
 	OperationManager
-	noRetriesOperation
-	dvol   *DirvolumeEntry
-	IpList []string
+	maxRetries int
+	dvol       *DirvolumeEntry
+	IpList     []string
 }
 
 func NewDirvolumeUnexportOperation(
@@ -485,8 +503,9 @@ func NewDirvolumeUnexportOperation(
 			db: db,
 			op: NewPendingOperationEntry(NEW_ID),
 		},
-		dvol:   dvol,
-		IpList: ipList,
+		maxRetries: DIRVOLUME_MAX_RETRIES,
+		dvol:       dvol,
+		IpList:     ipList,
 	}
 }
 
@@ -508,7 +527,8 @@ func loadDirvolumeUnexportOperation(
 			db: db,
 			op: p,
 		},
-		dvol: dvols[0],
+		maxRetries: DIRVOLUME_MAX_RETRIES,
+		dvol:       dvols[0],
 	}, nil
 }
 
@@ -518,6 +538,10 @@ func (dvx *DirvolumeUnexportOperation) Label() string {
 
 func (dvx *DirvolumeUnexportOperation) ResourceUrl() string {
 	return fmt.Sprintf("/dirvolumes/%v", dvx.dvol.Info.Id)
+}
+
+func (dvx *DirvolumeUnexportOperation) MaxRetries() int {
+	return dvx.maxRetries
 }
 
 func (dvx *DirvolumeUnexportOperation) Build() error {
