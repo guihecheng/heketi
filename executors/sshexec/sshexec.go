@@ -14,6 +14,7 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"sync"
 
 	"github.com/lpabon/godbc"
 
@@ -36,6 +37,7 @@ type SshExecutor struct {
 	exec            Ssher
 	config          *SshConfig
 	port            string
+	mux             sync.Mutex
 }
 
 var (
@@ -139,6 +141,13 @@ func NewSshExecutor(config *SshConfig) (*SshExecutor, error) {
 
 func (s *SshExecutor) ExecCommands(
 	host string, commands []string, timeoutMinutes int) (rex.Results, error) {
+
+	// NOTE: sync glusterfs operations
+	// glusterfs cli has a contention mode for multiple commands running concurrently
+	// so we have to serialize them here
+	// or some commands will get "Another transaction ..." error message
+	s.mux.Lock()
+	defer s.mux.Unlock()
 
 	// Throttle
 	s.AccessConnection(host)
