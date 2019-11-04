@@ -317,7 +317,14 @@ func (a *App) DirvolumeStats(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	stats, err = dv.statDirvolume(a.db, a.executor)
+	for attempt := 0; attempt < DIRVOLUME_MAX_RETRIES; attempt++ {
+		stats, err = dv.statDirvolume(a.db, a.executor)
+		if err == nil {
+			break
+		}
+		logger.Info("Retrying stats")
+	}
+
 	if err != nil {
 		return
 	}
