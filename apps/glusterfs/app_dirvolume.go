@@ -3,9 +3,11 @@ package glusterfs
 import (
 	"encoding/json"
 	"net/http"
+	"time"
 
 	"github.com/boltdb/bolt"
 	"github.com/gorilla/mux"
+	"github.com/heketi/heketi/executors"
 	"github.com/heketi/heketi/pkg/glusterfs/api"
 	"github.com/heketi/heketi/pkg/utils"
 )
@@ -317,12 +319,16 @@ func (a *App) DirvolumeStats(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	for attempt := 0; attempt < DIRVOLUME_MAX_RETRIES; attempt++ {
+	for attempt := 0; attempt < DIRVOLUME_MAX_RETRIES; {
 		stats, err = dv.statDirvolume(a.db, a.executor)
 		if err == nil {
 			break
 		}
+		if err != executors.CmdRetryError {
+			attempt++
+		}
 		logger.Info("Retrying stats")
+		time.Sleep(100 * time.Millisecond)
 	}
 
 	if err != nil {

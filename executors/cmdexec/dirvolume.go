@@ -123,9 +123,9 @@ func (s *CmdExecutor) DirvolumeStats(host string, volume string,
 			dirvolume, volume)
 	}
 	logger.Debug("%+v\n", dirvolInfo)
-	if len(dirvolInfo.DirvolInfo.DirvolList) == 0 {
-		return nil, fmt.Errorf("Empty dirvolume info of dirvolume name: %v, volume %v",
-			dirvolume, volume)
+	// return code 30802 implies "Another transaction is in progress for ofs. Please try again after sometime."
+	if dirvolInfo.OpErrno == 30802 {
+		return nil, executors.CmdRetryError
 	}
 	return &dirvolInfo.DirvolInfo.DirvolList[0], nil
 }

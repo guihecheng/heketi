@@ -15,4 +15,5 @@ import (
 
 var (
 	NotSupportedError = errors.New("Action not supported by executor")
+	CmdRetryError     = errors.New("Another transaction is in progress for ofs. Please try again after sometime.")
 )
