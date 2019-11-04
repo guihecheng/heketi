@@ -123,6 +123,10 @@ func (s *CmdExecutor) DirvolumeStats(host string, volume string,
 			dirvolume, volume)
 	}
 	logger.Debug("%+v\n", dirvolInfo)
+	if len(dirvolInfo.DirvolInfo.DirvolList) == 0 {
+		return nil, fmt.Errorf("Empty dirvolume info of dirvolume name: %v, volume %v",
+			dirvolume, volume)
+	}
 	return &dirvolInfo.DirvolInfo.DirvolList[0], nil
 }
 
