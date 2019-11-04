@@ -123,9 +123,13 @@ func (s *CmdExecutor) DirvolumeStats(host string, volume string,
 			dirvolume, volume)
 	}
 	logger.Debug("%+v\n", dirvolInfo)
-	// return code 30802 implies "Another transaction is in progress for ofs. Please try again after sometime."
-	if dirvolInfo.OpErrno == 30802 {
+	// OpErrno:30802 implies "Another transaction is in progress for ofs. Please try again after sometime."
+	// OpErrno:30800 implies "Locking failed on... Please check log file for details."
+	if dirvolInfo.OpErrno == 30802 || dirvolInfo.OpErrno == 30800 {
 		return nil, executors.CmdRetryError
+	}
+	if dirvolInfo.OpErrno != 0 || len(dirvolInfo.DirvolInfo.DirvolList) == 0 {
+		return nil, fmt.Errorf("Unexpected errno for glusterfs quota command")
 	}
 	return &dirvolInfo.DirvolInfo.DirvolList[0], nil
 }

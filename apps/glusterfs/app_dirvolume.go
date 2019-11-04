@@ -85,6 +85,8 @@ func (a *App) DirvolumeInfo(w http.ResponseWriter, r *http.Request) {
 		return nil
 	})
 	if err != nil {
+		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+		w.WriteHeader(http.StatusGatewayTimeout)
 		return
 	}
 
@@ -332,7 +334,6 @@ func (a *App) DirvolumeStats(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err != nil {
-		return
 	}
 
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
