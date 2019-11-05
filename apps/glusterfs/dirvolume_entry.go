@@ -377,6 +377,20 @@ func (dv *DirvolumeEntry) expandDirvolume(db wdb.RODB,
 	return nil
 }
 
+func (dv *DirvolumeEntry) saveExportDirvolume(db wdb.DB, iplist []string) error {
+	err := db.Update(func(tx *bolt.Tx) error {
+		// Save cluster
+		cluster, err := NewClusterEntryFromId(tx, dv.Info.ClusterId)
+		if err != nil {
+			return err
+		}
+		cluster.Info.ExportDirStr = updateIpListToExport(dv.Info.Name, iplist, cluster.Info.ExportDirStr)
+
+		return cluster.Save(tx)
+	})
+	return err
+}
+
 func (dv *DirvolumeEntry) exportDirvolume(db wdb.RODB,
 	executor executors.Executor) error {
 
@@ -386,8 +400,6 @@ func (dv *DirvolumeEntry) exportDirvolume(db wdb.RODB,
 	if err != nil {
 		return err
 	}
-
-	dvr.ExportDirStr = updateIpListToExport(dv.Info.Name, dv.Info.Export.IpList, dvr.ExportDirStr)
 
 	if _, err := executor.DirvolumeUpdateExport(host, DirPoolVolumeName, dvr); err != nil {
 		return err

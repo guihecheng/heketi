@@ -442,9 +442,15 @@ func (dvx *DirvolumeExportOperation) MaxRetries() int {
 
 func (dvx *DirvolumeExportOperation) Build() error {
 	return dvx.db.Update(func(tx *bolt.Tx) error {
+		txdb := wdb.WrapTx(tx)
+		e := dvx.dvol.saveExportDirvolume(txdb, dvx.IpList)
+		if e != nil {
+			return e
+		}
+
 		dvx.dvol.Info.Export.IpList = dvx.IpList
 		dvx.op.RecordExportDirvolume(dvx.dvol)
-		if e := dvx.op.Save(tx); e != nil {
+		if e = dvx.op.Save(tx); e != nil {
 			return e
 		}
 		return nil
