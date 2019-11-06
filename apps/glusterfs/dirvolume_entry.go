@@ -446,5 +446,11 @@ func (dv *DirvolumeEntry) statDirvolume(db wdb.RODB,
 	stats.UsedSize = edv.UsedSize
 	stats.AvailSize = edv.AvailSize
 
+	// quota exceeded, return totalsize
+	if stats.UsedSize >= stats.TotalSize {
+		stats.UsedSize = stats.TotalSize
+		stats.AvailSize = 0
+	}
+
 	return stats, nil
 }
